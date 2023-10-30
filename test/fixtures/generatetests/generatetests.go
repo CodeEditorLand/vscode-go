@@ -1,6 +1,6 @@
 package generatetests
 
-type obj struct {}
+type obj struct{}
 
 func (o obj) String() string {
 	return ""

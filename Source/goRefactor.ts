@@ -3,9 +3,9 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-'use strict';
+"use strict";
 
-import vscode = require('vscode');
+import vscode = require("vscode");
 
 export class GoRefactorProvider implements vscode.CodeActionProvider {
 	public provideCodeActions(
@@ -18,20 +18,20 @@ export class GoRefactorProvider implements vscode.CodeActionProvider {
 			return [];
 		}
 		const extractFunction = new vscode.CodeAction(
-			'Extract to function in package scope',
+			"Extract to function in package scope",
 			vscode.CodeActionKind.RefactorExtract
 		);
 		const extractVar = new vscode.CodeAction(
-			'Extract to variable in local scope',
+			"Extract to variable in local scope",
 			vscode.CodeActionKind.RefactorExtract
 		);
 		extractFunction.command = {
-			title: 'Extract to function in package scope',
-			command: 'go.godoctor.extract'
+			title: "Extract to function in package scope",
+			command: "go.godoctor.extract",
 		};
 		extractVar.command = {
-			title: 'Extract to variable in local scope',
-			command: 'go.godoctor.var'
+			title: "Extract to variable in local scope",
+			command: "go.godoctor.var",
 		};
 
 		return [extractFunction, extractVar];

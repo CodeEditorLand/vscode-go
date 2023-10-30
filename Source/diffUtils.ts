@@ -3,19 +3,22 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-import jsDiff = require('diff');
-import { Position, Range, TextEditorEdit, Uri, WorkspaceEdit } from 'vscode';
-import { getBinPathFromEnvVar } from './goPath';
+import jsDiff = require("diff");
+import { Position, Range, TextEditorEdit, Uri, WorkspaceEdit } from "vscode";
+import { getBinPathFromEnvVar } from "./goPath";
 
 let diffToolAvailable: boolean | null = null;
 
 export function isDiffToolAvailable(): boolean {
 	if (diffToolAvailable == null) {
-		const envPath = process.env['PATH'] || (process.platform === 'win32' ? process.env['Path'] : null);
+		const envPath =
+			process.env["PATH"] ||
+			(process.platform === "win32" ? process.env["Path"] : null);
 		if (!envPath) {
 			return false;
 		}
-		diffToolAvailable = getBinPathFromEnvVar('diff', envPath, false) != null;
+		diffToolAvailable =
+			getBinPathFromEnvVar("diff", envPath, false) != null;
 	}
 	return diffToolAvailable;
 }
@@ -23,7 +26,7 @@ export function isDiffToolAvailable(): boolean {
 export enum EditTypes {
 	EDIT_DELETE,
 	EDIT_INSERT,
-	EDIT_REPLACE
+	EDIT_REPLACE,
 }
 
 export class Edit {
@@ -35,7 +38,7 @@ export class Edit {
 	constructor(action: number, start: Position) {
 		this.action = action;
 		this.start = start;
-		this.text = '';
+		this.text = "";
 	}
 
 	// Applies Edit using given TextEditorEdit
@@ -56,7 +59,10 @@ export class Edit {
 	}
 
 	// Applies Edits to given WorkspaceEdit
-	public applyUsingWorkspaceEdit(workspaceEdit: WorkspaceEdit, fileUri: Uri): void {
+	public applyUsingWorkspaceEdit(
+		workspaceEdit: WorkspaceEdit,
+		fileUri: Uri
+	): void {
 		switch (this.action) {
 			case EditTypes.EDIT_INSERT:
 				workspaceEdit.insert(fileUri, this.start, this.text);
@@ -67,7 +73,11 @@ export class Edit {
 				break;
 
 			case EditTypes.EDIT_REPLACE:
-				workspaceEdit.replace(fileUri, new Range(this.start, this.end), this.text);
+				workspaceEdit.replace(
+					fileUri,
+					new Range(this.start, this.end),
+					this.text
+				);
 				break;
 		}
 	}
@@ -94,18 +104,24 @@ function parseUniDiffs(diffOutput: jsDiff.IUniDiff[]): FilePatch[] {
 			let startLine = hunk.oldStart;
 			hunk.lines.forEach((line) => {
 				switch (line.substr(0, 1)) {
-					case '-':
-						edit = new Edit(EditTypes.EDIT_DELETE, new Position(startLine - 1, 0));
+					case "-":
+						edit = new Edit(
+							EditTypes.EDIT_DELETE,
+							new Position(startLine - 1, 0)
+						);
 						edit.end = new Position(startLine, 0);
 						edits.push(edit);
 						startLine++;
 						break;
-					case '+':
-						edit = new Edit(EditTypes.EDIT_INSERT, new Position(startLine - 1, 0));
-						edit.text += line.substr(1) + '\n';
+					case "+":
+						edit = new Edit(
+							EditTypes.EDIT_INSERT,
+							new Position(startLine - 1, 0)
+						);
+						edit.text += line.substr(1) + "\n";
 						edits.push(edit);
 						break;
-					case ' ':
+					case " ":
 						startLine++;
 						break;
 				}
@@ -128,12 +144,23 @@ function parseUniDiffs(diffOutput: jsDiff.IUniDiff[]): FilePatch[] {
  *
  * @returns A single FilePatch object
  */
-export function getEdits(fileName: string, oldStr: string, newStr: string): FilePatch {
-	if (process.platform === 'win32') {
-		oldStr = oldStr.split('\r\n').join('\n');
-		newStr = newStr.split('\r\n').join('\n');
+export function getEdits(
+	fileName: string,
+	oldStr: string,
+	newStr: string
+): FilePatch {
+	if (process.platform === "win32") {
+		oldStr = oldStr.split("\r\n").join("\n");
+		newStr = newStr.split("\r\n").join("\n");
 	}
-	const unifiedDiffs: jsDiff.IUniDiff = jsDiff.structuredPatch(fileName, fileName, oldStr, newStr, '', '');
+	const unifiedDiffs: jsDiff.IUniDiff = jsDiff.structuredPatch(
+		fileName,
+		fileName,
+		oldStr,
+		newStr,
+		"",
+		""
+	);
 	const filePatches: FilePatch[] = parseUniDiffs([unifiedDiffs]);
 	return filePatches[0];
 }

@@ -2,10 +2,7 @@
 	"rules": {
 		"adjacent-overload-signatures": true,
 		"align": {
-			"options": [
-				"parameters",
-				"statements"
-			]
+			"options": ["parameters", "statements"]
 		},
 		"arrow-parens": true,
 		"arrow-return-shorthand": true,
@@ -38,18 +35,12 @@
 			]
 		},
 		"class-name": true,
-		"comment-format": [
-			true,
-			"check-space"
-		],
+		"comment-format": [true, "check-space"],
 		"curly": true,
 		"eofline": true,
 		"forin": true,
 		"import-spacing": true,
-		"indent": [
-			true,
-			"tabs"
-		],
+		"indent": [true, "tabs"],
 		"interface-over-type-literal": true,
 		"jsdoc-format": true,
 		"label-position": true,
@@ -111,10 +102,7 @@
 		},
 		"prefer-const": true,
 		"prefer-for-of": true,
-		"quotemark": [
-			true,
-			"single"
-		],
+		"quotemark": [true, "single"],
 		"radix": true,
 		"semicolon": true,
 		"space-before-function-paren": {
@@ -131,10 +119,7 @@
 				"esSpecCompliant": true
 			}
 		},
-		"triple-equals": [
-			true,
-			"allow-null-check"
-		],
+		"triple-equals": [true, "allow-null-check"],
 		"typedef-whitespace": [
 			true,
 			{

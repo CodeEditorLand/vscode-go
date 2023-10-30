@@ -3,18 +3,20 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-import * as assert from 'assert';
-import { guessPackageNameFromFile, substituteEnv } from '../../src/util';
+import * as assert from "assert";
+import { guessPackageNameFromFile, substituteEnv } from "../../src/util";
 
-suite('utils Tests', () => {
-	test('substituteEnv: default', () => {
+suite("utils Tests", () => {
+	test("substituteEnv: default", () => {
 		// prepare test
 		const env = Object.assign({}, process.env);
-		process.env['test1'] = 'abcd';
-		process.env['test2'] = 'defg';
+		process.env["test1"] = "abcd";
+		process.env["test2"] = "defg";
 
-		const actual = substituteEnv(' ${env:test1} \r\n ${env:test2}\r\n${env:test1}');
-		const expected = ' abcd \r\n defg\r\nabcd';
+		const actual = substituteEnv(
+			" ${env:test1} \r\n ${env:test2}\r\n${env:test1}"
+		);
+		const expected = " abcd \r\n defg\r\nabcd";
 
 		assert.equal(actual, expected);
 
@@ -23,10 +25,10 @@ suite('utils Tests', () => {
 	});
 });
 
-suite('GuessPackageNameFromFile Tests', () => {
-	test('package name from main file', (done) => {
-		const expectedPackageName = 'main';
-		const filename = 'main.go';
+suite("GuessPackageNameFromFile Tests", () => {
+	test("package name from main file", (done) => {
+		const expectedPackageName = "main";
+		const filename = "main.go";
 
 		guessPackageNameFromFile(filename)
 			.then((result) => {
@@ -35,9 +37,9 @@ suite('GuessPackageNameFromFile Tests', () => {
 			.then(() => done(), done);
 	});
 
-	test('package name from dirpath', (done) => {
-		const expectedPackageName = 'package';
-		const fileDir = 'path/package/file.go';
+	test("package name from dirpath", (done) => {
+		const expectedPackageName = "package";
+		const fileDir = "path/package/file.go";
 
 		guessPackageNameFromFile(fileDir)
 			.then(([result]) => {
@@ -46,10 +48,10 @@ suite('GuessPackageNameFromFile Tests', () => {
 			.then(() => done(), done);
 	});
 
-	test('package name from test file', (done) => {
-		const expectedPackageName = 'file';
-		const expectedPackageTestName = 'file_test';
-		const fileDir = 'file_test.go';
+	test("package name from test file", (done) => {
+		const expectedPackageName = "file";
+		const expectedPackageTestName = "file_test";
+		const fileDir = "file_test.go";
 
 		guessPackageNameFromFile(fileDir)
 			.then(([packageNameResult, packageTestNameResult]) => {

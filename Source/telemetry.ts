@@ -3,28 +3,31 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-import vscode = require('vscode');
-import TelemetryReporter from 'vscode-extension-telemetry';
+import vscode = require("vscode");
+import TelemetryReporter from "vscode-extension-telemetry";
 
-export const extensionId: string = 'ms-vscode.Go';
+export const extensionId: string = "ms-vscode.Go";
 const extension = vscode.extensions.getExtension(extensionId);
-const extensionVersion: string = extension ? extension.packageJSON.version : '';
-const aiKey: string = 'AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217';
+const extensionVersion: string = extension ? extension.packageJSON.version : "";
+const aiKey: string = "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217";
 
 export function sendTelemetryEventForModulesUsage() {
 	/* __GDPR__
 		"modules" : {}
 	*/
-	sendTelemetryEvent('modules');
+	sendTelemetryEvent("modules");
 }
 
-export function sendTelemetryEventForAddImportCmd(arg: { importPath: string; from: string }) {
+export function sendTelemetryEventForAddImportCmd(arg: {
+	importPath: string;
+	from: string;
+}) {
 	/* __GDPR__
 		"addImportCmd" : {
 			"from" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
 		}
 	*/
-	sendTelemetryEvent('addImportCmd', { from: (arg && arg.from) || 'cmd' });
+	sendTelemetryEvent("addImportCmd", { from: (arg && arg.from) || "cmd" });
 }
 
 export function sendTelemetryEventForGopkgs(timeTaken: number) {
@@ -34,20 +37,25 @@ export function sendTelemetryEventForGopkgs(timeTaken: number) {
 			"timeTaken": { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "isMeasurement": true }
 		}
 	*/
-	sendTelemetryEvent('gopkgs', {}, { timeTaken });
+	sendTelemetryEvent("gopkgs", {}, { timeTaken });
 }
 
-export function sendTelemetryEventForFormatting(formatTool: string, timeTaken: number) {
+export function sendTelemetryEventForFormatting(
+	formatTool: string,
+	timeTaken: number
+) {
 	/* __GDPR__
 		"format" : {
 			"tool" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" },
 			"timeTaken": { "classification": "SystemMetaData", "purpose": "PerformanceAndHealth", "isMeasurement": true }
 		}
 	*/
-	sendTelemetryEvent('format', { tool: formatTool }, { timeTaken });
+	sendTelemetryEvent("format", { tool: formatTool }, { timeTaken });
 }
 
-export function sendTelemetryEventForDebugConfiguration(debugConfiguration: vscode.DebugConfiguration) {
+export function sendTelemetryEventForDebugConfiguration(
+	debugConfiguration: vscode.DebugConfiguration
+) {
 	/* __GDPR__
 		"debugConfiguration" : {
 			"request" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" },
@@ -57,16 +65,18 @@ export function sendTelemetryEventForDebugConfiguration(debugConfiguration: vsco
 			"stopOnEntry": { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
 		}
 	*/
-	sendTelemetryEvent('debugConfiguration', {
+	sendTelemetryEvent("debugConfiguration", {
 		request: debugConfiguration.request,
 		mode: debugConfiguration.mode,
 		useApiV1: debugConfiguration.useApiV1,
 		apiVersion: debugConfiguration.apiVersion,
-		stopOnEntry: debugConfiguration.stopOnEntry
+		stopOnEntry: debugConfiguration.stopOnEntry,
 	});
 }
 
-export function sendTelemetryEventForConfig(goConfig: vscode.WorkspaceConfiguration) {
+export function sendTelemetryEventForConfig(
+	goConfig: vscode.WorkspaceConfiguration
+) {
 	/* __GDPR__
 		"goConfig" : {
 			"buildOnSave" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" },
@@ -108,45 +118,55 @@ export function sendTelemetryEventForConfig(goConfig: vscode.WorkspaceConfigurat
 			"useGoProxyToCheckForToolUpdates": { "classification": "CustomerContent", "purpose": "FeatureInsight" }
 		}
 	*/
-	sendTelemetryEvent('goConfig', {
-		buildOnSave: goConfig['buildOnSave'] + '',
-		buildFlags: goConfig['buildFlags'],
-		buildTags: goConfig['buildTags'],
-		formatOnSave: goConfig['formatOnSave'] + '',
-		formatTool: goConfig['formatTool'],
-		formatFlags: goConfig['formatFlags'],
-		lintOnSave: goConfig['lintOnSave'] + '',
-		lintFlags: goConfig['lintFlags'],
-		lintTool: goConfig['lintTool'],
-		generateTestsFlags: goConfig['generateTestsFlags'],
-		vetOnSave: goConfig['vetOnSave'] + '',
-		vetFlags: goConfig['vetFlags'],
-		testOnSave: goConfig['testOnSave'] + '',
-		testFlags: goConfig['testFlags'],
-		coverOnSave: goConfig['coverOnSave'] + '',
-		coverOnTestPackage: goConfig['coverOnTestPackage'] + '',
-		coverageDecorator: goConfig['coverageDecorator'],
-		coverageOptions: goConfig['coverageOptions'],
-		gopath: goConfig['gopath'] ? 'set' : '',
-		goroot: goConfig['goroot'] ? 'set' : '',
-		inferGopath: goConfig['inferGopath'] + '',
-		toolsGopath: goConfig['toolsGopath'] ? 'set' : '',
-		gocodeAutoBuild: goConfig['gocodeAutoBuild'] + '',
-		gocodePackageLookupMode: goConfig['gocodePackageLookupMode'] + '',
-		useCodeSnippetsOnFunctionSuggest: goConfig['useCodeSnippetsOnFunctionSuggest'] + '',
-		useCodeSnippetsOnFunctionSuggestWithoutType: goConfig['useCodeSnippetsOnFunctionSuggestWithoutType'] + '',
-		autocompleteUnimportedPackages: goConfig['autocompleteUnimportedPackages'] + '',
-		docsTool: goConfig['docsTool'],
-		useLanguageServer: goConfig['useLanguageServer'] + '',
-		languageServerExperimentalFeatures: JSON.stringify(goConfig['languageServerExperimentalFeatures']),
-		includeImports: goConfig['gotoSymbol'] && goConfig['gotoSymbol']['includeImports'] + '',
-		addTags: JSON.stringify(goConfig['addTags']),
-		removeTags: JSON.stringify(goConfig['removeTags']),
-		editorContextMenuCommands: JSON.stringify(goConfig['editorContextMenuCommands']),
-		liveErrors: JSON.stringify(goConfig['liveErrors']),
-		codeLens: JSON.stringify(goConfig['enableCodeLens']),
-		alternateTools: JSON.stringify(goConfig['alternateTools']),
-		useGoProxyToCheckForToolUpdates: goConfig['useGoProxyToCheckForToolUpdates'] + ''
+	sendTelemetryEvent("goConfig", {
+		buildOnSave: goConfig["buildOnSave"] + "",
+		buildFlags: goConfig["buildFlags"],
+		buildTags: goConfig["buildTags"],
+		formatOnSave: goConfig["formatOnSave"] + "",
+		formatTool: goConfig["formatTool"],
+		formatFlags: goConfig["formatFlags"],
+		lintOnSave: goConfig["lintOnSave"] + "",
+		lintFlags: goConfig["lintFlags"],
+		lintTool: goConfig["lintTool"],
+		generateTestsFlags: goConfig["generateTestsFlags"],
+		vetOnSave: goConfig["vetOnSave"] + "",
+		vetFlags: goConfig["vetFlags"],
+		testOnSave: goConfig["testOnSave"] + "",
+		testFlags: goConfig["testFlags"],
+		coverOnSave: goConfig["coverOnSave"] + "",
+		coverOnTestPackage: goConfig["coverOnTestPackage"] + "",
+		coverageDecorator: goConfig["coverageDecorator"],
+		coverageOptions: goConfig["coverageOptions"],
+		gopath: goConfig["gopath"] ? "set" : "",
+		goroot: goConfig["goroot"] ? "set" : "",
+		inferGopath: goConfig["inferGopath"] + "",
+		toolsGopath: goConfig["toolsGopath"] ? "set" : "",
+		gocodeAutoBuild: goConfig["gocodeAutoBuild"] + "",
+		gocodePackageLookupMode: goConfig["gocodePackageLookupMode"] + "",
+		useCodeSnippetsOnFunctionSuggest:
+			goConfig["useCodeSnippetsOnFunctionSuggest"] + "",
+		useCodeSnippetsOnFunctionSuggestWithoutType:
+			goConfig["useCodeSnippetsOnFunctionSuggestWithoutType"] + "",
+		autocompleteUnimportedPackages:
+			goConfig["autocompleteUnimportedPackages"] + "",
+		docsTool: goConfig["docsTool"],
+		useLanguageServer: goConfig["useLanguageServer"] + "",
+		languageServerExperimentalFeatures: JSON.stringify(
+			goConfig["languageServerExperimentalFeatures"]
+		),
+		includeImports:
+			goConfig["gotoSymbol"] &&
+			goConfig["gotoSymbol"]["includeImports"] + "",
+		addTags: JSON.stringify(goConfig["addTags"]),
+		removeTags: JSON.stringify(goConfig["removeTags"]),
+		editorContextMenuCommands: JSON.stringify(
+			goConfig["editorContextMenuCommands"]
+		),
+		liveErrors: JSON.stringify(goConfig["liveErrors"]),
+		codeLens: JSON.stringify(goConfig["enableCodeLens"]),
+		alternateTools: JSON.stringify(goConfig["alternateTools"]),
+		useGoProxyToCheckForToolUpdates:
+			goConfig["useGoProxyToCheckForToolUpdates"] + "",
 	});
 }
 
@@ -157,7 +177,7 @@ export function sendTelemetryEventForKillingProcess(msg: any, matches: any) {
 			"stack": { "classification": "CallstackOrException", "purpose": "PerformanceAndHealth" }
 		}
 	*/
-	sendTelemetryEvent('errorKillingProcess', { message: msg, stack: matches });
+	sendTelemetryEvent("errorKillingProcess", { message: msg, stack: matches });
 }
 
 export function sendTelemetryEventForGoVersion(goVersion: string) {
@@ -166,7 +186,7 @@ export function sendTelemetryEventForGoVersion(goVersion: string) {
 			"version" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
 		}
 	*/
-	sendTelemetryEvent('getGoVersion', { version: `${goVersion}` });
+	sendTelemetryEvent("getGoVersion", { version: `${goVersion}` });
 }
 
 export function disposeTelemetryReporter(): Promise<any> {

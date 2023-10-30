@@ -3,10 +3,10 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-import path = require('path');
-import vscode = require('vscode');
-import { lintDiagnosticCollection } from './goMain';
-import { diagnosticsStatusBarItem, outputChannel } from './goStatus';
+import path = require("path");
+import vscode = require("vscode");
+import { lintDiagnosticCollection } from "./goMain";
+import { diagnosticsStatusBarItem, outputChannel } from "./goStatus";
 import {
 	getGoConfig,
 	getToolsEnvVars,
@@ -15,20 +15,22 @@ import {
 	handleDiagnosticErrors,
 	ICheckResult,
 	resolvePath,
-	runTool
-} from './util';
+	runTool,
+} from "./util";
 /**
  * Runs linter on the current file, package or workspace.
  */
 export function lintCode(scope?: string) {
 	const editor = vscode.window.activeTextEditor;
-	if (!editor && scope !== 'workspace') {
-		vscode.window.showInformationMessage('No editor is active, cannot find current package to lint');
+	if (!editor && scope !== "workspace") {
+		vscode.window.showInformationMessage(
+			"No editor is active, cannot find current package to lint"
+		);
 		return;
 	}
-	if (editor.document.languageId !== 'go' && scope !== 'workspace') {
+	if (editor.document.languageId !== "go" && scope !== "workspace") {
 		vscode.window.showInformationMessage(
-			'File in the active editor is not a Go file, cannot find current package to lint'
+			"File in the active editor is not a Go file, cannot find current package to lint"
 		);
 		return;
 	}
@@ -38,16 +40,20 @@ export function lintCode(scope?: string) {
 
 	outputChannel.clear(); // Ensures stale output from lint on save is cleared
 	diagnosticsStatusBarItem.show();
-	diagnosticsStatusBarItem.text = 'Linting...';
+	diagnosticsStatusBarItem.text = "Linting...";
 
 	goLint(documentUri, goConfig, scope)
 		.then((warnings) => {
-			handleDiagnosticErrors(editor ? editor.document : null, warnings, lintDiagnosticCollection);
+			handleDiagnosticErrors(
+				editor ? editor.document : null,
+				warnings,
+				lintDiagnosticCollection
+			);
 			diagnosticsStatusBarItem.hide();
 		})
 		.catch((err) => {
-			vscode.window.showInformationMessage('Error: ' + err);
-			diagnosticsStatusBarItem.text = 'Linting Failed';
+			vscode.window.showInformationMessage("Error: " + err);
+			diagnosticsStatusBarItem.text = "Linting Failed";
 		});
 }
 
@@ -75,77 +81,95 @@ export function goLint(
 
 	const currentWorkspace = getWorkspaceFolderPath(fileUri);
 
-	const cwd = scope === 'workspace' && currentWorkspace ? currentWorkspace : path.dirname(fileUri.fsPath);
+	const cwd =
+		scope === "workspace" && currentWorkspace
+			? currentWorkspace
+			: path.dirname(fileUri.fsPath);
 
 	if (!path.isAbsolute(cwd)) {
 		return Promise.resolve([]);
 	}
 
-	const lintTool = goConfig['lintTool'] || 'golint';
-	const lintFlags: string[] = goConfig['lintFlags'] || [];
+	const lintTool = goConfig["lintTool"] || "golint";
+	const lintFlags: string[] = goConfig["lintFlags"] || [];
 	const lintEnv = Object.assign({}, getToolsEnvVars());
 	const args: string[] = [];
 
 	lintFlags.forEach((flag) => {
 		// --json is not a valid flag for golint and in gometalinter, it is used to print output in json which we dont want
-		if (flag === '--json') {
+		if (flag === "--json") {
 			return;
 		}
-		if (flag.startsWith('--config=') || flag.startsWith('-config=')) {
-			let configFilePath = flag.substr(flag.indexOf('=') + 1).trim();
+		if (flag.startsWith("--config=") || flag.startsWith("-config=")) {
+			let configFilePath = flag.substr(flag.indexOf("=") + 1).trim();
 			if (!configFilePath) {
 				return;
 			}
 			configFilePath = resolvePath(configFilePath);
-			args.push(`${flag.substr(0, flag.indexOf('=') + 1)}${configFilePath}`);
+			args.push(
+				`${flag.substr(0, flag.indexOf("=") + 1)}${configFilePath}`
+			);
 			return;
 		}
 		args.push(flag);
 	});
-	if (lintTool === 'gometalinter') {
-		if (args.indexOf('--aggregate') === -1) {
-			args.push('--aggregate');
+	if (lintTool === "gometalinter") {
+		if (args.indexOf("--aggregate") === -1) {
+			args.push("--aggregate");
 		}
-		if (goConfig['toolsGopath']) {
+		if (goConfig["toolsGopath"]) {
 			// gometalinter will expect its linters to be in the GOPATH
 			// So add the toolsGopath to GOPATH
-			lintEnv['GOPATH'] += path.delimiter + getToolsGopath();
+			lintEnv["GOPATH"] += path.delimiter + getToolsGopath();
 		}
 	}
-	if (lintTool === 'golangci-lint') {
-		if (args.indexOf('run') === -1) {
-			args.unshift('run');
+	if (lintTool === "golangci-lint") {
+		if (args.indexOf("run") === -1) {
+			args.unshift("run");
 		}
-		if (args.indexOf('--print-issued-lines=false') === -1) {
+		if (args.indexOf("--print-issued-lines=false") === -1) {
 			// print only file:number:column
-			args.push('--print-issued-lines=false');
+			args.push("--print-issued-lines=false");
 		}
-		if (args.indexOf('--out-format=colored-line-number') === -1) {
+		if (args.indexOf("--out-format=colored-line-number") === -1) {
 			// print file:number:column.
 			// Explicit override in case .golangci.yml calls for a format we don't understand
-			args.push('--out-format=colored-line-number');
+			args.push("--out-format=colored-line-number");
 		}
 	}
 
-	if (scope === 'workspace' && currentWorkspace) {
-		args.push('./...');
-		outputChannel.appendLine(`Starting linting the current workspace at ${currentWorkspace}`);
-	} else if (scope === 'file') {
+	if (scope === "workspace" && currentWorkspace) {
+		args.push("./...");
+		outputChannel.appendLine(
+			`Starting linting the current workspace at ${currentWorkspace}`
+		);
+	} else if (scope === "file") {
 		args.push(fileUri.fsPath);
-		outputChannel.appendLine(`Starting linting the current file at ${fileUri.fsPath}`);
+		outputChannel.appendLine(
+			`Starting linting the current file at ${fileUri.fsPath}`
+		);
 	} else {
-		outputChannel.appendLine(`Starting linting the current package at ${cwd}`);
+		outputChannel.appendLine(
+			`Starting linting the current package at ${cwd}`
+		);
 	}
 
 	running = true;
-	const lintPromise = runTool(args, cwd, 'warning', false, lintTool, lintEnv, false, tokenSource.token).then(
-		(result) => {
-			if (closureEpoch === epoch) {
-				running = false;
-			}
-			return result;
+	const lintPromise = runTool(
+		args,
+		cwd,
+		"warning",
+		false,
+		lintTool,
+		lintEnv,
+		false,
+		tokenSource.token
+	).then((result) => {
+		if (closureEpoch === epoch) {
+			running = false;
 		}
-	);
+		return result;
+	});
 
 	return lintPromise;
 }

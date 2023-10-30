@@ -41,7 +41,10 @@ export class Node<K, V> {
 	 * @param key The key of the new node.
 	 * @param value The value of the new node.
 	 */
-	constructor(public key: K, public value: V) {}
+	constructor(
+		public key: K,
+		public value: V
+	) {}
 
 	/**
 	 * Convenience function to get the height of the left child of the node,
@@ -120,12 +123,14 @@ const enum BalanceState {
 	/** Left child's height is 1 greater than right child's height */
 	SLIGHTLY_UNBALANCED_LEFT,
 	/** Left child's height is 2+ greater than right child's height */
-	UNBALANCED_LEFT
+	UNBALANCED_LEFT,
 }
 
 export class NearestNeighborDict<K, V> {
-	public static NUMERIC_DISTANCE_FUNCTION = (a: number, b: number) => (a > b ? a - b : b - a);
-	public static DEFAULT_COMPARE_FUNCTION = (a: any, b: any) => (a > b ? 1 : a < b ? -1 : 0);
+	public static NUMERIC_DISTANCE_FUNCTION = (a: number, b: number) =>
+		a > b ? a - b : b - a;
+	public static DEFAULT_COMPARE_FUNCTION = (a: any, b: any) =>
+		a > b ? 1 : a < b ? -1 : 0;
 
 	protected root: Node<K, V> = null;
 
@@ -220,18 +225,29 @@ export class NearestNeighborDict<K, V> {
 	 * as measured by this._distance
 	 * @return The (key, value) pair of the node with key nearest the given key in value.
 	 */
-	private _getNearest(key: K, root: Node<K, V>, closest: Node<K, V>): Node<K, V> {
+	private _getNearest(
+		key: K,
+		root: Node<K, V>,
+		closest: Node<K, V>
+	): Node<K, V> {
 		const result = this.compare(key, root.key);
 		if (result === 0) {
 			return root;
 		}
 
-		closest = this.distance(key, root.key) < this.distance(key, closest.key) ? root : closest;
+		closest =
+			this.distance(key, root.key) < this.distance(key, closest.key)
+				? root
+				: closest;
 
 		if (result < 0) {
-			return root.left ? this._getNearest(key, root.left, closest) : closest;
+			return root.left
+				? this._getNearest(key, root.left, closest)
+				: closest;
 		} else {
-			return root.right ? this._getNearest(key, root.right, closest) : closest;
+			return root.right
+				? this._getNearest(key, root.right, closest)
+				: closest;
 		}
 	}
 
@@ -255,7 +271,9 @@ export class NearestNeighborDict<K, V> {
 			case 0:
 				return BalanceState.BALANCED;
 			default: {
-				console.error('Internal error: Avl tree should never be more than two levels unbalanced');
+				console.error(
+					"Internal error: Avl tree should never be more than two levels unbalanced"
+				);
 				if (heightDifference > 0) {
 					return BalanceState.UNBALANCED_LEFT;
 				}
