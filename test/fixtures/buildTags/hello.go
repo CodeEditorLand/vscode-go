@@ -1,4 +1,3 @@
-//go:build randomtag
 // +build randomtag
 
 package main

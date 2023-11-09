@@ -1,11 +1,7 @@
 package hello
 
-import (
-	"fmt"
-	. "math"
-)
-
-// comment
+import "fmt"
+import . "math" // comment
 
 func two() {
 	fmt.Print(Max(1, 2))

@@ -2,8 +2,7 @@
 
 Invoke `Tasks: Configure Task Runner` from the command palette.
 
-This will create a `tasks.json` file in your workspace's `.vscode` folder.
-Replace the contents of this file with:
+This will create a `tasks.json` file in your workspace's `.vscode` folder.  Replace the contents of this file with:
 
 ```json
 {
@@ -14,22 +13,21 @@ Replace the contents of this file with:
 	"tasks": [
 		{
 			"taskName": "install",
-			"args": ["-v", "./..."],
+			"args": [ "-v", "./..."],
 			"isBuildCommand": true
 		},
 		{
 			"taskName": "test",
-			"args": ["-v", "./..."],
+			"args": [ "-v", "./..."],
 			"isTestCommand": true
 		}
 	]
 }
 ```
-
 ```json
 {
-	"version": "2.0.0",
-	"type": "shell",
+	"version": "2.0.0",	
+	"type": "shell",	
 	"echoCommand": true,
 	"cwd": "${workspaceFolder}",
 	"tasks": [
@@ -40,21 +38,17 @@ Replace the contents of this file with:
 				"kind": "build",
 				"isDefault": true
 			}
-		}
+		},		
 	]
 }
+
 ```
 
-You can now invoke <kbd>ctrl/cmd</kbd>+<kbd>shift</kbd>+<kbd>b</kbd> to run
-`go install -v ./...` and report results in the output window, or
-<kbd>ctrl/cmd</kbd>+<kbd>shift</kbd>+<kbd>t</kbd> to run `go test -v ./...`.
+You can now invoke <kbd>ctrl/cmd</kbd>+<kbd>shift</kbd>+<kbd>b</kbd> to run `go install -v ./...` and report results in the output window, or <kbd>ctrl/cmd</kbd>+<kbd>shift</kbd>+<kbd>t</kbd> to run `go test -v ./...`.
 
-You can use this same technique to invoke other build and test tools. For
-example, to invoke makefile targets if your build is defined in a makefile, or
-to invoke tools like `go generate`.
+You can use this same technique to invoke other build and test tools. For example, to invoke makefile targets if your build is defined in a makefile, or to invoke tools like `go generate`.
 
-More on configuring tasks in VS Code can be found at
-https://code.visualstudio.com/docs/editor/tasks.
+More on configuring tasks in VS Code can be found at https://code.visualstudio.com/docs/editor/tasks.
 
 You can define a specific task to run only some tests:
 
@@ -79,3 +73,8 @@ You can define a specific task to run only some tests:
 ```
 
 The above task would run all tests with `User` in their name.
+
+
+
+
+

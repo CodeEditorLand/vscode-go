@@ -4,30 +4,23 @@
 
 An extension for VS Code which provides support for the Go language.
 
-## We have moved! 🏡 🚚 🏡
+## We have moved! 🏡 🚚 🏡 
 
 As of June 2020, our new home is https://github.com/golang/vscode-go.
 
 For more on this, please see the below blog posts
-
--   [The next phase of Go experience in VS Code](https://code.visualstudio.com/blogs/2020/06/09/go-extension)
--   [VS Code Go extension joins the Go project](https://blog.golang.org/vscode-go)
+- [The next phase of Go experience in VS Code](https://code.visualstudio.com/blogs/2020/06/09/go-extension)
+- [VS Code Go extension joins the Go project](https://blog.golang.org/vscode-go)
 
 ## Contributing
 
-This project welcomes contributions and suggestions. Please go through the
-[Contributing Guide](https://github.com/golang/vscode-go/blob/master/docs/contributing.md)
-in the new repository.
+This project welcomes contributions and suggestions. Please go through the [Contributing Guide](https://github.com/golang/vscode-go/blob/master/docs/contributing.md) in the new repository.
 
 ## Code of Conduct
 
-This project has adopted the
-[Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the
-[Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any
-additional questions or comments.
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
+contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## License
-
 [MIT](LICENSE)
