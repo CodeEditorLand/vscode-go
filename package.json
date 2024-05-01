@@ -1,18 +1,33 @@
 {
-	"activationEvents": [
-		"workspaceContains:**/*.go",
-		"onLanguage:go",
-		"onCommand:go.gopath",
-		"onCommand:go.tools.install",
-		"onDebugResolve:go"
+	"name": "Go",
+	"version": "0.0.1",
+	"private": false,
+	"description": "Rich Go language support for Visual Studio Code",
+	"keywords": [
+		"land"
 	],
-	"author": {
-		"email": "Land@PlayForm.Cloud",
-		"name": "🌆 — Land —",
-		"url": "HTTPS://Land.PlayForm.Cloud"
-	},
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/LandGo#readme",
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/LandGo/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/LandGo.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🌆 — Land —",
+		"email": "Land@PlayForm.Cloud",
+		"url": "HTTPS://Land.PlayForm.Cloud"
+	},
+	"type": "module",
+	"main": "./out/src/goMain",
+	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
+		"compile": "tsc -p ./",
+		"fix-lint": "node ./node_modules/tslint/bin/tslint --fix --project tsconfig.json",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"unit-test": "node ./node_modules/mocha/bin/_mocha -u tdd --timeout 5000 --colors ./out/test/unit"
 	},
 	"contributes": {
 		"breakpoints": [
@@ -1500,6 +1515,13 @@
 			}
 		]
 	},
+	"activationEvents": [
+		"workspaceContains:**/*.go",
+		"onLanguage:go",
+		"onCommand:go.gopath",
+		"onCommand:go.tools.install",
+		"onDebugResolve:go"
+	],
 	"dependencies": {
 		"deep-equal": "2.2.3",
 		"diff": "5.2.0",
@@ -1509,7 +1531,6 @@
 		"tree-kill": "1.2.2",
 		"web-request": "1.0.7"
 	},
-	"description": "Rich Go language support for Visual Studio Code",
 	"devDependencies": {
 		"@playform/build": "0.0.7",
 		"@playform/document": "0.0.6",
@@ -1524,33 +1545,12 @@
 		"sinon": "17.0.1"
 	},
 	"extensionDependencies": [],
-	"galleryBanner": {
-		"color": "#F2F2F2",
-		"theme": "light"
-	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/LandGo#readme",
-	"icon": "images/go-logo-blue.png",
-	"keywords": [
-		"land"
-	],
-	"license": "SEE LICENSE IN LICENSE",
-	"main": "./out/src/goMain",
-	"name": "Go",
-	"private": false,
 	"publishConfig": {
 		"access": "public"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/LandGo.git"
-	},
-	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
-		"compile": "tsc -p ./",
-		"fix-lint": "node ./node_modules/tslint/bin/tslint --fix --project tsconfig.json",
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"unit-test": "node ./node_modules/mocha/bin/_mocha -u tdd --timeout 5000 --colors ./out/test/unit"
-	},
-	"type": "module",
-	"version": "0.0.1"
+	"icon": "images/go-logo-blue.png",
+	"galleryBanner": {
+		"color": "#F2F2F2",
+		"theme": "light"
+	}
 }
