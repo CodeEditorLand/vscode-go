@@ -3,29 +3,31 @@
 	"version": "0.0.1",
 	"private": false,
 	"description": "Rich Go language support for Visual Studio Code",
-	"homepage": "https://github.com/CodeEditorLand/Foundation#readme",
+	"keywords": [
+		"land"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/LandGo#readme",
 	"bugs": {
-		"url": "https://github.com/CodeEditorLand/Foundation/issues"
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/LandGo/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/CodeEditorLand/Foundation.git"
+		"url": "git+HTTPS://github.com/CodeEditorLand/LandGo.git"
 	},
 	"license": "SEE LICENSE IN LICENSE",
 	"author": {
-		"name": "Playform",
-		"email": "Hello@Playform.Cloud",
-		"url": "https://playform.cloud"
+		"name": "🌆 — Land —",
+		"email": "Land@PlayForm.Cloud",
+		"url": "HTTPS://Land.PlayForm.Cloud"
 	},
 	"type": "module",
 	"main": "./out/src/goMain",
 	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
 		"compile": "tsc -p ./",
 		"fix-lint": "node ./node_modules/tslint/bin/tslint --fix --project tsconfig.json",
-		"prepublishOnly": "TypeScriptESBuild 'Source/**/*.ts'",
-		"unit-test": "node ./node_modules/mocha/bin/_mocha -u tdd --timeout 5000 --colors ./out/test/unit",
-		"vscode:prepublish": "npm run compile",
-		"watch": "tsc -watch -p ./"
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"unit-test": "node ./node_modules/mocha/bin/_mocha -u tdd --timeout 5000 --colors ./out/test/unit"
 	},
 	"contributes": {
 		"breakpoints": [
@@ -1527,28 +1529,20 @@
 		"moment": "2.30.1",
 		"semver": "7.6.0",
 		"tree-kill": "1.2.2",
-		"vscode-debugadapter": "1.40.0",
-		"vscode-debugprotocol": "1.40.0",
-		"vscode-extension-telemetry": "0.1.2",
-		"vscode-languageclient": "9.0.1",
 		"web-request": "1.0.7"
 	},
 	"devDependencies": {
+		"@playform/build": "0.0.7",
+		"@playform/document": "0.0.6",
 		"@types/deep-equal": "1.0.4",
 		"@types/fs-extra": "11.0.4",
 		"@types/glob": "8.1.0",
-		"@types/mocha": "10.0.6",
-		"@types/node": "20.11.30",
+		"@types/node": "20.12.7",
 		"@types/semver": "7.5.8",
 		"@types/sinon": "17.0.3",
-		"@types/vscode": "1.87.0",
 		"fs-extra": "11.2.0",
-		"glob": "10.3.10",
-		"mocha": "10.3.0",
-		"sinon": "17.0.1",
-		"typescript": "5.4.2",
-		"typescript-esbuild": "0.4.5",
-		"vscode-test": "1.3.0"
+		"glob": "10.3.12",
+		"sinon": "17.0.1"
 	},
 	"extensionDependencies": [],
 	"publishConfig": {
