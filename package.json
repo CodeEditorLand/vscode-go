@@ -1,26 +1,6 @@
 {
 	"name": "Go",
-	"version": "0.0.1",
-	"private": false,
 	"description": "Rich Go language support for Visual Studio Code",
-	"keywords": [
-		"land"
-	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/LandGo#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/LandGo/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/LandGo.git"
-	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "🛬 Land —",
-		"email": "Land@PlayForm.Cloud",
-		"url": "HTTPS://Land.PlayForm.Cloud"
-	},
-	"type": "module",
 	"main": "./out/src/goMain",
 	"scripts": {
 		"Document": "Document 'Source/**/*.ts'",
@@ -1533,7 +1513,6 @@
 	},
 	"devDependencies": {
 		"@playform/build": "0.0.7",
-		"@playform/document": "0.0.6",
 		"@types/deep-equal": "1.0.4",
 		"@types/fs-extra": "11.0.4",
 		"@types/glob": "8.1.0",
@@ -1545,9 +1524,6 @@
 		"sinon": "17.0.1"
 	},
 	"extensionDependencies": [],
-	"publishConfig": {
-		"access": "public"
-	},
 	"icon": "images/go-logo-blue.png",
 	"galleryBanner": {
 		"color": "#F2F2F2",
