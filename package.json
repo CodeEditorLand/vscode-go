@@ -1501,24 +1501,24 @@
 		"onDebugResolve:go"
 	],
 	"dependencies": {
-		"deep-equal": "^2.0.2",
-		"diff": "^4.0.2",
-		"json-rpc2": "^1.0.2",
-		"moment": "^2.24.0",
-		"semver": "^7.3.2",
-		"tree-kill": "^1.2.2",
-		"web-request": "^1.0.7"
+		"deep-equal": "2.0.2",
+		"diff": "4.0.2",
+		"json-rpc2": "1.0.2",
+		"moment": "2.24.0",
+		"semver": "7.3.2",
+		"tree-kill": "1.2.2",
+		"web-request": "1.0.7"
 	},
 	"devDependencies": {
-		"@types/deep-equal": "^1.0.1",
-		"@types/fs-extra": "^8.1.0",
-		"@types/glob": "^7.1.1",
-		"@types/node": "^13.11.1",
-		"@types/semver": "^7.1.0",
-		"@types/sinon": "^9.0.0",
-		"fs-extra": "^9.0.0",
-		"glob": "^7.1.6",
-		"sinon": "^9.0.2"
+		"@types/deep-equal": "1.0.1",
+		"@types/fs-extra": "8.1.0",
+		"@types/glob": "7.1.1",
+		"@types/node": "13.11.1",
+		"@types/semver": "7.1.0",
+		"@types/sinon": "9.0.0",
+		"fs-extra": "9.0.0",
+		"glob": "7.1.6",
+		"sinon": "9.0.2"
 	},
 	"extensionDependencies": [],
 	"icon": "images/go-logo-blue.png",
