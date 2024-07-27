@@ -3,9 +3,11 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-import vscode = require('vscode');
+import vscode = require("vscode");
 
-export abstract class GoBaseCodeLensProvider implements vscode.CodeLensProvider {
+export abstract class GoBaseCodeLensProvider
+	implements vscode.CodeLensProvider
+{
 	protected enabled: boolean = true;
 	private onDidChangeCodeLensesEmitter = new vscode.EventEmitter<void>();
 
@@ -22,7 +24,7 @@ export abstract class GoBaseCodeLensProvider implements vscode.CodeLensProvider 
 
 	public provideCodeLenses(
 		document: vscode.TextDocument,
-		token: vscode.CancellationToken
+		token: vscode.CancellationToken,
 	): vscode.ProviderResult<vscode.CodeLens[]> {
 		return [];
 	}

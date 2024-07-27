@@ -1,11 +1,12 @@
 {
-	"activationEvents": [
-		"workspaceContains:**/*.go",
-		"onLanguage:go",
-		"onCommand:go.gopath",
-		"onCommand:go.tools.install",
-		"onDebugResolve:go"
-	],
+	"name": "Go",
+	"description": "Rich Go language support for Visual Studio Code",
+	"main": "./out/src/goMain",
+	"scripts": {
+		"compile": "tsc -p ./",
+		"fix-lint": "node ./node_modules/tslint/bin/tslint --fix --project tsconfig.json",
+		"unit-test": "node ./node_modules/mocha/bin/_mocha -u tdd --timeout 5000 --colors ./out/test/unit"
+	},
 	"contributes": {
 		"breakpoints": [
 			{
@@ -1492,6 +1493,13 @@
 			}
 		]
 	},
+	"activationEvents": [
+		"workspaceContains:**/*.go",
+		"onLanguage:go",
+		"onCommand:go.gopath",
+		"onCommand:go.tools.install",
+		"onDebugResolve:go"
+	],
 	"dependencies": {
 		"deep-equal": "2.0.2",
 		"diff": "4.0.2",
@@ -1501,7 +1509,6 @@
 		"tree-kill": "1.2.2",
 		"web-request": "1.0.7"
 	},
-	"description": "Rich Go language support for Visual Studio Code",
 	"devDependencies": {
 		"@types/deep-equal": "1.0.1",
 		"@types/fs-extra": "8.1.0",
@@ -1514,16 +1521,9 @@
 		"sinon": "9.0.2"
 	},
 	"extensionDependencies": [],
+	"icon": "images/go-logo-blue.png",
 	"galleryBanner": {
 		"color": "#F2F2F2",
 		"theme": "light"
-	},
-	"icon": "images/go-logo-blue.png",
-	"main": "./out/src/goMain",
-	"name": "Go",
-	"scripts": {
-		"compile": "tsc -p ./",
-		"fix-lint": "node ./node_modules/tslint/bin/tslint --fix --project tsconfig.json",
-		"unit-test": "node ./node_modules/mocha/bin/_mocha -u tdd --timeout 5000 --colors ./out/test/unit"
 	}
 }
