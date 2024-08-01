@@ -1493,25 +1493,25 @@
 		]
 	},
 	"dependencies": {
-		"deep-equal": "2.0.2",
-		"diff": "4.0.2",
-		"json-rpc2": "1.0.2",
-		"moment": "2.24.0",
-		"semver": "7.3.2",
+		"deep-equal": "2.2.3",
+		"diff": "5.2.0",
+		"json-rpc2": "2.0.0",
+		"moment": "2.30.1",
+		"semver": "7.6.3",
 		"tree-kill": "1.2.2",
 		"web-request": "1.0.7"
 	},
 	"description": "Rich Go language support for Visual Studio Code",
 	"devDependencies": {
-		"@types/deep-equal": "1.0.1",
-		"@types/fs-extra": "8.1.0",
-		"@types/glob": "7.1.1",
-		"@types/node": "13.11.1",
-		"@types/semver": "7.1.0",
-		"@types/sinon": "9.0.0",
-		"fs-extra": "9.0.0",
-		"glob": "7.1.6",
-		"sinon": "9.0.2"
+		"@types/deep-equal": "1.0.4",
+		"@types/fs-extra": "11.0.4",
+		"@types/glob": "8.1.0",
+		"@types/node": "22.0.2",
+		"@types/semver": "7.5.8",
+		"@types/sinon": "17.0.3",
+		"fs-extra": "11.2.0",
+		"glob": "11.0.0",
+		"sinon": "18.0.0"
 	},
 	"extensionDependencies": [],
 	"galleryBanner": {
