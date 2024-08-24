@@ -3,19 +3,19 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-'use strict';
+"use strict";
 
-import cp = require('child_process');
-import { dirname, isAbsolute } from 'path';
-import vscode = require('vscode');
-import { promptForMissingTool } from './goInstallTools';
-import { getBinPath, getToolsEnvVars } from './util';
+import cp = require("child_process");
+import { dirname, isAbsolute } from "path";
+import vscode = require("vscode");
+import { promptForMissingTool } from "./goInstallTools";
+import { getBinPath, getToolsEnvVars } from "./util";
 
 /**
  * Extracts function out of current selection and replaces the current selection with a call to the extracted function.
  */
 export function extractFunction() {
-	extract('extract');
+	extract("extract");
 }
 
 /**
@@ -23,33 +23,38 @@ export function extractFunction() {
  * replaces the current selection with the new var.
  */
 export function extractVariable() {
-	extract('var');
+	extract("var");
 }
 
-type typeOfExtraction = 'var' | 'extract';
+type typeOfExtraction = "var" | "extract";
 
 async function extract(type: typeOfExtraction): Promise<void> {
 	const activeEditor = vscode.window.activeTextEditor;
 	if (!activeEditor) {
-		vscode.window.showInformationMessage('No editor is active.');
+		vscode.window.showInformationMessage("No editor is active.");
 		return;
 	}
 	if (activeEditor.selections.length !== 1) {
 		vscode.window.showInformationMessage(
-			`You need to have a single selection for extracting ${type === 'var' ? 'variable' : 'method'}`
+			`You need to have a single selection for extracting ${type === "var" ? "variable" : "method"}`,
 		);
 		return;
 	}
 
 	const newName = await vscode.window.showInputBox({
-		placeHolder: `Please enter a name for the extracted ${type === 'var' ? 'variable' : 'method'}.`
+		placeHolder: `Please enter a name for the extracted ${type === "var" ? "variable" : "method"}.`,
 	});
 
 	if (!newName) {
 		return;
 	}
 
-	runGoDoctor(newName, activeEditor.selection, activeEditor.document.fileName, type);
+	runGoDoctor(
+		newName,
+		activeEditor.selection,
+		activeEditor.document.fileName,
+		type,
+	);
 }
 
 /**
@@ -62,38 +67,38 @@ function runGoDoctor(
 	newName: string,
 	selection: vscode.Selection,
 	fileName: string,
-	type: typeOfExtraction
+	type: typeOfExtraction,
 ): Thenable<void> {
-	const godoctor = getBinPath('godoctor');
+	const godoctor = getBinPath("godoctor");
 
 	return new Promise((resolve, reject) => {
 		if (!isAbsolute(godoctor)) {
-			promptForMissingTool('godoctor');
+			promptForMissingTool("godoctor");
 			return resolve();
 		}
 
 		cp.execFile(
 			godoctor,
 			[
-				'-w',
-				'-pos',
+				"-w",
+				"-pos",
 				`${selection.start.line + 1},${selection.start.character + 1}:${selection.end.line + 1},${
 					selection.end.character
 				}`,
-				'-file',
+				"-file",
 				fileName,
 				type,
-				newName
+				newName,
 			],
 			{
 				env: getToolsEnvVars(),
-				cwd: dirname(fileName)
+				cwd: dirname(fileName),
 			},
 			(err, stdout, stderr) => {
 				if (err) {
 					vscode.window.showErrorMessage(stderr || err.message);
 				}
-			}
+			},
 		);
 	});
 }
