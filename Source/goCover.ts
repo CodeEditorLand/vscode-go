@@ -3,15 +3,16 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-'use strict';
+"use strict";
 
-import fs = require('fs');
-import path = require('path');
-import rl = require('readline');
-import vscode = require('vscode');
-import { isModSupported } from './goModules';
-import { getTestFlags, goTest, showTestOutput, TestConfig } from './testUtils';
-import { getGoConfig, getTempFilePath } from './util';
+import { isModSupported } from "./goModules";
+import { getTestFlags, goTest, showTestOutput, TestConfig } from "./testUtils";
+import { getGoConfig, getTempFilePath } from "./util";
+
+import fs = require("fs");
+import path = require("path");
+import rl = require("readline");
+import vscode = require("vscode");
 
 let gutterSvgs: { [key: string]: string };
 let decorators: {
@@ -41,49 +42,49 @@ let modifiedFiles: {
 export function initCoverageDecorators(ctx: vscode.ExtensionContext) {
 	// Initialize gutter svgs
 	gutterSvgs = {
-		blockred: ctx.asAbsolutePath('images/gutter-blockred.svg'),
-		blockgreen: ctx.asAbsolutePath('images/gutter-blockgreen.svg'),
-		blockblue: ctx.asAbsolutePath('images/gutter-blockblue.svg'),
-		blockyellow: ctx.asAbsolutePath('images/gutter-blockyellow.svg'),
-		slashred: ctx.asAbsolutePath('images/gutter-slashred.svg'),
-		slashgreen: ctx.asAbsolutePath('images/gutter-slashgreen.svg'),
-		slashblue: ctx.asAbsolutePath('images/gutter-slashblue.svg'),
-		slashyellow: ctx.asAbsolutePath('images/gutter-slashyellow.svg'),
-		verticalred: ctx.asAbsolutePath('images/gutter-vertred.svg'),
-		verticalgreen: ctx.asAbsolutePath('images/gutter-vertgreen.svg'),
-		verticalblue: ctx.asAbsolutePath('images/gutter-vertblue.svg'),
-		verticalyellow: ctx.asAbsolutePath('images/gutter-vertyellow.svg')
+		blockred: ctx.asAbsolutePath("images/gutter-blockred.svg"),
+		blockgreen: ctx.asAbsolutePath("images/gutter-blockgreen.svg"),
+		blockblue: ctx.asAbsolutePath("images/gutter-blockblue.svg"),
+		blockyellow: ctx.asAbsolutePath("images/gutter-blockyellow.svg"),
+		slashred: ctx.asAbsolutePath("images/gutter-slashred.svg"),
+		slashgreen: ctx.asAbsolutePath("images/gutter-slashgreen.svg"),
+		slashblue: ctx.asAbsolutePath("images/gutter-slashblue.svg"),
+		slashyellow: ctx.asAbsolutePath("images/gutter-slashyellow.svg"),
+		verticalred: ctx.asAbsolutePath("images/gutter-vertred.svg"),
+		verticalgreen: ctx.asAbsolutePath("images/gutter-vertgreen.svg"),
+		verticalblue: ctx.asAbsolutePath("images/gutter-vertblue.svg"),
+		verticalyellow: ctx.asAbsolutePath("images/gutter-vertyellow.svg"),
 	};
 
 	// Update the coverageDecorator in User config, if they are using the old style.
 	const goConfig = getGoConfig();
-	const inspectResult = goConfig.inspect('coverageDecorator');
+	const inspectResult = goConfig.inspect("coverageDecorator");
 	if (inspectResult) {
-		if (typeof inspectResult.globalValue === 'string') {
+		if (typeof inspectResult.globalValue === "string") {
 			goConfig.update(
-				'coverageDecorator',
+				"coverageDecorator",
 				{ type: inspectResult.globalValue },
-				vscode.ConfigurationTarget.Global
+				vscode.ConfigurationTarget.Global,
 			);
 		}
-		if (typeof inspectResult.workspaceValue === 'string') {
+		if (typeof inspectResult.workspaceValue === "string") {
 			goConfig.update(
-				'coverageDecorator',
+				"coverageDecorator",
 				{ type: inspectResult.workspaceValue },
-				vscode.ConfigurationTarget.Workspace
+				vscode.ConfigurationTarget.Workspace,
 			);
 		}
-		if (typeof inspectResult.workspaceFolderValue === 'string') {
+		if (typeof inspectResult.workspaceFolderValue === "string") {
 			goConfig.update(
-				'coverageDecorator',
+				"coverageDecorator",
 				{ type: inspectResult.workspaceValue },
-				vscode.ConfigurationTarget.WorkspaceFolder
+				vscode.ConfigurationTarget.WorkspaceFolder,
 			);
 		}
 	}
 
 	// Update the decorators
-	updateCodeCoverageDecorators(goConfig.get('coverageDecorator'));
+	updateCodeCoverageDecorators(goConfig.get("coverageDecorator"));
 }
 
 /**
@@ -94,15 +95,15 @@ export function updateCodeCoverageDecorators(coverageDecoratorConfig: any) {
 	// These defaults are chosen to be distinguishable in nearly any color scheme (even Red)
 	// as well as by people who have difficulties with color perception.
 	decoratorConfig = {
-		type: 'highlight',
-		coveredHighlightColor: 'rgba(64,128,128,0.5)',
-		uncoveredHighlightColor: 'rgba(128,64,64,0.25)',
-		coveredGutterStyle: 'blockblue',
-		uncoveredGutterStyle: 'slashyellow'
+		type: "highlight",
+		coveredHighlightColor: "rgba(64,128,128,0.5)",
+		uncoveredHighlightColor: "rgba(128,64,64,0.25)",
+		coveredGutterStyle: "blockblue",
+		uncoveredGutterStyle: "slashyellow",
 	};
 
 	// Update from configuration
-	if (typeof coverageDecoratorConfig === 'string') {
+	if (typeof coverageDecoratorConfig === "string") {
 		decoratorConfig.type = coverageDecoratorConfig;
 	} else {
 		for (const k in coverageDecoratorConfig) {
@@ -120,17 +121,20 @@ function setDecorators() {
 	decorators = {
 		type: decoratorConfig.type,
 		coveredGutterDecorator: vscode.window.createTextEditorDecorationType({
-			gutterIconPath: gutterSvgs[decoratorConfig.coveredGutterStyle]
+			gutterIconPath: gutterSvgs[decoratorConfig.coveredGutterStyle],
 		}),
 		uncoveredGutterDecorator: vscode.window.createTextEditorDecorationType({
-			gutterIconPath: gutterSvgs[decoratorConfig.uncoveredGutterStyle]
+			gutterIconPath: gutterSvgs[decoratorConfig.uncoveredGutterStyle],
 		}),
-		coveredHighlightDecorator: vscode.window.createTextEditorDecorationType({
-			backgroundColor: decoratorConfig.coveredHighlightColor
-		}),
-		uncoveredHighlightDecorator: vscode.window.createTextEditorDecorationType({
-			backgroundColor: decoratorConfig.uncoveredHighlightColor
-		})
+		coveredHighlightDecorator: vscode.window.createTextEditorDecorationType(
+			{
+				backgroundColor: decoratorConfig.coveredHighlightColor,
+			},
+		),
+		uncoveredHighlightDecorator:
+			vscode.window.createTextEditorDecorationType({
+				backgroundColor: decoratorConfig.uncoveredHighlightColor,
+			}),
 	};
 }
 
@@ -168,7 +172,10 @@ function clearCoverage() {
  * @param coverProfilePath Path to the file that has the cover profile data
  * @param packageDirPath Absolute path of the package for which the coverage was calculated
  */
-export function applyCodeCoverageToAllEditors(coverProfilePath: string, packageDirPath: string): Promise<void> {
+export function applyCodeCoverageToAllEditors(
+	coverProfilePath: string,
+	packageDirPath: string,
+): Promise<void> {
 	return new Promise((resolve, reject) => {
 		try {
 			// Clear existing coverage files
@@ -176,19 +183,24 @@ export function applyCodeCoverageToAllEditors(coverProfilePath: string, packageD
 
 			const lines = rl.createInterface({
 				input: fs.createReadStream(coverProfilePath),
-				output: undefined
+				output: undefined,
 			});
 
-			lines.on('line', (data: string) => {
+			lines.on("line", (data: string) => {
 				// go test coverageprofile generates output:
 				//    filename:StartLine.StartColumn,EndLine.EndColumn Hits CoverCount
 				// The first line will be "mode: set" which will be ignored
-				const fileRange = data.match(/([^:]+)\:([\d]+)\.([\d]+)\,([\d]+)\.([\d]+)\s([\d]+)\s([\d]+)/);
+				const fileRange = data.match(
+					/([^:]+)\:([\d]+)\.([\d]+)\,([\d]+)\.([\d]+)\s([\d]+)\s([\d]+)/,
+				);
 				if (!fileRange) {
 					return;
 				}
 
-				const filePath = path.join(packageDirPath, path.basename(fileRange[1]));
+				const filePath = path.join(
+					packageDirPath,
+					path.basename(fileRange[1]),
+				);
 				const coverage = getCoverageData(filePath);
 				const range = new vscode.Range(
 					// Start Line converted to zero based
@@ -198,7 +210,7 @@ export function applyCodeCoverageToAllEditors(coverProfilePath: string, packageD
 					// End Line converted to zero based
 					parseInt(fileRange[4], 10) - 1,
 					// End Column converted to zero based
-					parseInt(fileRange[5], 10) - 1
+					parseInt(fileRange[5], 10) - 1,
 				);
 				// If is Covered (CoverCount > 0)
 				if (parseInt(fileRange[7], 10) > 0) {
@@ -208,7 +220,7 @@ export function applyCodeCoverageToAllEditors(coverProfilePath: string, packageD
 				}
 				setCoverageData(filePath, coverage);
 			});
-			lines.on('close', () => {
+			lines.on("close", () => {
 				setDecorators();
 				vscode.window.visibleTextEditors.forEach(applyCodeCoverage);
 				resolve();
@@ -225,11 +237,11 @@ export function applyCodeCoverageToAllEditors(coverProfilePath: string, packageD
  * @param filePath
  */
 function getCoverageData(filePath: string): CoverageData {
-	if (filePath.startsWith('_')) {
+	if (filePath.startsWith("_")) {
 		filePath = filePath.substr(1);
 	}
-	if (process.platform === 'win32') {
-		const parts = filePath.split('/');
+	if (process.platform === "win32") {
+		const parts = filePath.split("/");
 		if (parts.length) {
 			filePath = parts.join(path.sep);
 		}
@@ -243,11 +255,11 @@ function getCoverageData(filePath: string): CoverageData {
  * @param data
  */
 function setCoverageData(filePath: string, data: CoverageData) {
-	if (filePath.startsWith('_')) {
+	if (filePath.startsWith("_")) {
 		filePath = filePath.substr(1);
 	}
-	if (process.platform === 'win32') {
-		const parts = filePath.split('/');
+	if (process.platform === "win32") {
+		const parts = filePath.split("/");
 		if (parts.length) {
 			filePath = parts.join(path.sep);
 		}
@@ -260,31 +272,41 @@ function setCoverageData(filePath: string, data: CoverageData) {
  * @param editor
  */
 export function applyCodeCoverage(editor: vscode.TextEditor) {
-	if (!editor || editor.document.languageId !== 'go' || editor.document.fileName.endsWith('_test.go')) {
+	if (
+		!editor ||
+		editor.document.languageId !== "go" ||
+		editor.document.fileName.endsWith("_test.go")
+	) {
 		return;
 	}
 
 	const cfg = getGoConfig(editor.document.uri);
-	const coverageOptions = cfg['coverageOptions'];
+	const coverageOptions = cfg["coverageOptions"];
 	for (const filename in coverageFiles) {
 		if (editor.document.uri.fsPath.endsWith(filename)) {
 			isCoverageApplied = true;
 			const coverageData = coverageFiles[filename];
-			if (coverageOptions === 'showCoveredCodeOnly' || coverageOptions === 'showBothCoveredAndUncoveredCode') {
+			if (
+				coverageOptions === "showCoveredCodeOnly" ||
+				coverageOptions === "showBothCoveredAndUncoveredCode"
+			) {
 				editor.setDecorations(
-					decorators.type === 'gutter'
+					decorators.type === "gutter"
 						? decorators.coveredGutterDecorator
 						: decorators.coveredHighlightDecorator,
-					coverageData.coveredRange
+					coverageData.coveredRange,
 				);
 			}
 
-			if (coverageOptions === 'showUncoveredCodeOnly' || coverageOptions === 'showBothCoveredAndUncoveredCode') {
+			if (
+				coverageOptions === "showUncoveredCodeOnly" ||
+				coverageOptions === "showBothCoveredAndUncoveredCode"
+			) {
 				editor.setDecorations(
-					decorators.type === 'gutter'
+					decorators.type === "gutter"
 						? decorators.uncoveredGutterDecorator
 						: decorators.uncoveredHighlightDecorator,
-					coverageData.uncoveredRange
+					coverageData.uncoveredRange,
 				);
 			}
 		}
@@ -298,11 +320,15 @@ export function applyCodeCoverage(editor: vscode.TextEditor) {
  * @param e TextDocument
  */
 export function removeCodeCoverageOnFileSave(e: vscode.TextDocument) {
-	if (e.languageId !== 'go' || !isCoverageApplied) {
+	if (e.languageId !== "go" || !isCoverageApplied) {
 		return;
 	}
 
-	if (vscode.window.visibleTextEditors.every((editor) => editor.document !== e)) {
+	if (
+		vscode.window.visibleTextEditors.every(
+			(editor) => editor.document !== e,
+		)
+	) {
 		return;
 	}
 
@@ -317,12 +343,22 @@ export function removeCodeCoverageOnFileSave(e: vscode.TextDocument) {
  * to determine files for which an eventual save can cause stale coverage data.
  * @param e TextDocumentChangeEvent
  */
-export function trackCodeCoverageRemovalOnFileChange(e: vscode.TextDocumentChangeEvent) {
-	if (e.document.languageId !== 'go' || !e.contentChanges.length || !isCoverageApplied) {
+export function trackCodeCoverageRemovalOnFileChange(
+	e: vscode.TextDocumentChangeEvent,
+) {
+	if (
+		e.document.languageId !== "go" ||
+		!e.contentChanges.length ||
+		!isCoverageApplied
+	) {
 		return;
 	}
 
-	if (vscode.window.visibleTextEditors.every((editor) => editor.document !== e.document)) {
+	if (
+		vscode.window.visibleTextEditors.every(
+			(editor) => editor.document !== e.document,
+		)
+	) {
 		return;
 	}
 
@@ -340,7 +376,7 @@ export function trackCodeCoverageRemovalOnFileChange(e: vscode.TextDocumentChang
 export async function toggleCoverageCurrentPackage() {
 	const editor = vscode.window.activeTextEditor;
 	if (!editor) {
-		vscode.window.showInformationMessage('No editor is active.');
+		vscode.window.showInformationMessage("No editor is active.");
 		return;
 	}
 
@@ -360,7 +396,7 @@ export async function toggleCoverageCurrentPackage() {
 		flags: testFlags,
 		background: true,
 		isMod,
-		applyCodeCoverage: true
+		applyCodeCoverage: true,
 	};
 
 	return goTest(testConfig).then((success) => {
@@ -374,12 +410,12 @@ export function isPartOfComment(e: vscode.TextDocumentChangeEvent): boolean {
 	return e.contentChanges.every((change) => {
 		// We cannot be sure with using just regex on individual lines whether a multi line change is part of a comment or not
 		// So play it safe and treat it as not a comment
-		if (!change.range.isSingleLine || change.text.includes('\n')) {
+		if (!change.range.isSingleLine || change.text.includes("\n")) {
 			return false;
 		}
 
 		const text = e.document.lineAt(change.range.start).text;
-		const idx = text.search('//');
+		const idx = text.search("//");
 		return idx > -1 && idx <= change.range.start.character;
 	});
 }

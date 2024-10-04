@@ -3,8 +3,11 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-'use strict';
+"use strict";
 
-import vscode = require('vscode');
+import vscode = require("vscode");
 
-export const GO_MODE: vscode.DocumentFilter = { language: 'go', scheme: 'file' };
+export const GO_MODE: vscode.DocumentFilter = {
+	language: "go",
+	scheme: "file",
+};

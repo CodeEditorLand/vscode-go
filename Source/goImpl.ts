@@ -3,13 +3,16 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-'use strict';
+"use strict";
 
-import cp = require('child_process');
-import { dirname } from 'path';
-import vscode = require('vscode');
-import { promptForMissingTool } from './goInstallTools';
-import { getBinPath, getToolsEnvVars } from './util';
+import { dirname } from "path";
+
+import { promptForMissingTool } from "./goInstallTools";
+import { getBinPath, getToolsEnvVars } from "./util";
+
+import cp = require("child_process");
+
+import vscode = require("vscode");
 
 // Supports only passing interface, see TODO in implCursor to finish
 const inputRegex = /^(\w+\ \*?\w+\ )?([\w./]+)$/;
@@ -17,22 +20,24 @@ const inputRegex = /^(\w+\ \*?\w+\ )?([\w./]+)$/;
 export function implCursor() {
 	const editor = vscode.window.activeTextEditor;
 	if (!editor) {
-		vscode.window.showErrorMessage('No active editor found.');
+		vscode.window.showErrorMessage("No active editor found.");
 		return;
 	}
 	const cursor = editor.selection;
 	return vscode.window
 		.showInputBox({
-			placeHolder: 'f *File io.Closer',
-			prompt: 'Enter receiver and interface to implement.'
+			placeHolder: "f *File io.Closer",
+			prompt: "Enter receiver and interface to implement.",
 		})
 		.then((implInput) => {
-			if (typeof implInput === 'undefined') {
+			if (typeof implInput === "undefined") {
 				return;
 			}
 			const matches = implInput.match(inputRegex);
 			if (!matches) {
-				vscode.window.showInformationMessage(`Not parsable input: ${implInput}`);
+				vscode.window.showInformationMessage(
+					`Not parsable input: ${implInput}`,
+				);
 				return;
 			}
 
@@ -44,27 +49,33 @@ export function implCursor() {
 		});
 }
 
-function runGoImpl(args: string[], insertPos: vscode.Position, editor: vscode.TextEditor) {
-	const goimpl = getBinPath('impl');
+function runGoImpl(
+	args: string[],
+	insertPos: vscode.Position,
+	editor: vscode.TextEditor,
+) {
+	const goimpl = getBinPath("impl");
 	const p = cp.execFile(
 		goimpl,
 		args,
 		{ env: getToolsEnvVars(), cwd: dirname(editor.document.fileName) },
 		(err, stdout, stderr) => {
-			if (err && (<any>err).code === 'ENOENT') {
-				promptForMissingTool('impl');
+			if (err && (<any>err).code === "ENOENT") {
+				promptForMissingTool("impl");
 				return;
 			}
 
 			if (err) {
-				vscode.window.showInformationMessage(`Cannot stub interface: ${stderr}`);
+				vscode.window.showInformationMessage(
+					`Cannot stub interface: ${stderr}`,
+				);
 				return;
 			}
 
 			editor.edit((editBuilder) => {
 				editBuilder.insert(insertPos, stdout);
 			});
-		}
+		},
 	);
 	if (p.pid) {
 		p.stdin.end();

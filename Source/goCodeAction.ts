@@ -3,30 +3,35 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-'use strict';
+"use strict";
 
-import vscode = require('vscode');
-import { listPackages } from './goImport';
+import { listPackages } from "./goImport";
+
+import vscode = require("vscode");
 
 export class GoCodeActionProvider implements vscode.CodeActionProvider {
 	public provideCodeActions(
 		document: vscode.TextDocument,
 		range: vscode.Range,
 		context: vscode.CodeActionContext,
-		token: vscode.CancellationToken
+		token: vscode.CancellationToken,
 	): Thenable<vscode.Command[]> {
 		const promises = context.diagnostics.map((diag) => {
 			// When a name is not found but could refer to a package, offer to add import
-			if (diag.message.indexOf('undefined: ') === 0) {
+			if (diag.message.indexOf("undefined: ") === 0) {
 				const [_, name] = /^undefined: (\S*)/.exec(diag.message);
 				return listPackages().then((packages) => {
 					const commands = packages
-						.filter((pkg) => pkg === name || pkg.endsWith('/' + name))
+						.filter(
+							(pkg) => pkg === name || pkg.endsWith("/" + name),
+						)
 						.map((pkg) => {
 							return {
 								title: 'import "' + pkg + '"',
-								command: 'go.import.add',
-								arguments: [{ importPath: pkg, from: 'codeAction' }]
+								command: "go.import.add",
+								arguments: [
+									{ importPath: pkg, from: "codeAction" },
+								],
 							};
 						});
 					return commands;

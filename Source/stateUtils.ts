@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-import vscode = require('vscode');
+import vscode = require("vscode");
 
 let globalState: vscode.Memento;
 let workspaceState: vscode.Memento;

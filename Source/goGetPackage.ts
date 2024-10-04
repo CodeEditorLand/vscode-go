@@ -3,14 +3,15 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-'use strict';
+"use strict";
 
-import cp = require('child_process');
-import vscode = require('vscode');
-import { buildCode } from './goBuild';
-import { envPath } from './goPath';
-import { outputChannel } from './goStatus';
-import { getBinPath, getCurrentGoPath, getImportPath } from './util';
+import { buildCode } from "./goBuild";
+import { envPath } from "./goPath";
+import { outputChannel } from "./goStatus";
+import { getBinPath, getCurrentGoPath, getImportPath } from "./util";
+
+import cp = require("child_process");
+import vscode = require("vscode");
 
 export function goGetPackage() {
 	const editor = vscode.window.activeTextEditor;
@@ -18,31 +19,38 @@ export function goGetPackage() {
 	const selectedText = editor.document.lineAt(selection.active.line).text;
 
 	const importPath = getImportPath(selectedText);
-	if (importPath === '') {
-		vscode.window.showErrorMessage('No import path to get');
+	if (importPath === "") {
+		vscode.window.showErrorMessage("No import path to get");
 		return;
 	}
 
-	const goRuntimePath = getBinPath('go');
+	const goRuntimePath = getBinPath("go");
 	if (!goRuntimePath) {
 		return vscode.window.showErrorMessage(
-			`Failed to run "go get" to get package as the "go" binary cannot be found in either GOROOT(${process.env['GOROOT']}) or PATH(${envPath})`
+			`Failed to run "go get" to get package as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
 		);
 	}
 
 	const env = Object.assign({}, process.env, { GOPATH: getCurrentGoPath() });
 
-	cp.execFile(goRuntimePath, ['get', '-v', importPath], { env }, (err, stdout, stderr) => {
-		// go get -v uses stderr to write output regardless of success or failure
-		if (stderr !== '') {
-			outputChannel.show();
-			outputChannel.clear();
-			outputChannel.appendLine(stderr);
-			buildCode();
-			return;
-		}
+	cp.execFile(
+		goRuntimePath,
+		["get", "-v", importPath],
+		{ env },
+		(err, stdout, stderr) => {
+			// go get -v uses stderr to write output regardless of success or failure
+			if (stderr !== "") {
+				outputChannel.show();
+				outputChannel.clear();
+				outputChannel.appendLine(stderr);
+				buildCode();
+				return;
+			}
 
-		// go get -v doesn't write anything when the package already exists
-		vscode.window.showInformationMessage(`Package already exists: ${importPath}`);
-	});
+			// go get -v doesn't write anything when the package already exists
+			vscode.window.showInformationMessage(
+				`Package already exists: ${importPath}`,
+			);
+		},
+	);
 }

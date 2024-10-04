@@ -3,22 +3,27 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-'use strict';
+"use strict";
 
-import vscode = require('vscode');
-import { GO_MODE } from './goMode';
-import { isModSupported } from './goModules';
+import { GO_MODE } from "./goMode";
+import { isModSupported } from "./goModules";
 
-export let outputChannel = vscode.window.createOutputChannel('Go');
+import vscode = require("vscode");
 
-export let diagnosticsStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+export let outputChannel = vscode.window.createOutputChannel("Go");
+
+export let diagnosticsStatusBarItem = vscode.window.createStatusBarItem(
+	vscode.StatusBarAlignment.Left,
+);
 
 let statusBarEntry: vscode.StatusBarItem;
-const statusBarItemModule = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-statusBarItemModule.text = '$(megaphone) Go Modules';
+const statusBarItemModule = vscode.window.createStatusBarItem(
+	vscode.StatusBarAlignment.Left,
+);
+statusBarItemModule.text = "$(megaphone) Go Modules";
 statusBarItemModule.tooltip =
-	'Modules is enabled for this project. Click to learn more about Modules support in VS Code.';
-statusBarItemModule.command = 'go.open.modulewiki';
+	"Modules is enabled for this project. Click to learn more about Modules support in VS Code.";
+statusBarItemModule.command = "go.open.modulewiki";
 
 export function showHideStatus(editor: vscode.TextEditor) {
 	if (statusBarEntry) {
@@ -50,8 +55,15 @@ export function hideGoStatus() {
 	}
 }
 
-export function showGoStatus(message: string, command: string, tooltip?: string) {
-	statusBarEntry = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, Number.MIN_VALUE);
+export function showGoStatus(
+	message: string,
+	command: string,
+	tooltip?: string,
+) {
+	statusBarEntry = vscode.window.createStatusBarItem(
+		vscode.StatusBarAlignment.Right,
+		Number.MIN_VALUE,
+	);
 	statusBarEntry.text = `$(alert) ${message}`;
 	statusBarEntry.command = command;
 	statusBarEntry.tooltip = tooltip;

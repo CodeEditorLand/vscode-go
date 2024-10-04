@@ -3,22 +3,29 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-'use strict';
+"use strict";
 
-import path = require('path');
-import vscode = require('vscode');
-import { goBuild } from './goBuild';
-import { parseLanguageServerConfig } from './goLanguageServer';
-import { goLint } from './goLint';
-import { buildDiagnosticCollection, lintDiagnosticCollection, vetDiagnosticCollection } from './goMain';
-import { isModSupported } from './goModules';
-import { diagnosticsStatusBarItem, outputChannel } from './goStatus';
-import { goVet } from './goVet';
-import { getTestFlags, goTest, TestConfig } from './testUtils';
-import { ICheckResult } from './util';
+import { goBuild } from "./goBuild";
+import { parseLanguageServerConfig } from "./goLanguageServer";
+import { goLint } from "./goLint";
+import {
+	buildDiagnosticCollection,
+	lintDiagnosticCollection,
+	vetDiagnosticCollection,
+} from "./goMain";
+import { isModSupported } from "./goModules";
+import { diagnosticsStatusBarItem, outputChannel } from "./goStatus";
+import { goVet } from "./goVet";
+import { getTestFlags, goTest, TestConfig } from "./testUtils";
+import { ICheckResult } from "./util";
 
-const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-statusBarItem.command = 'go.test.showOutput';
+import path = require("path");
+import vscode = require("vscode");
+
+const statusBarItem = vscode.window.createStatusBarItem(
+	vscode.StatusBarAlignment.Left,
+);
+statusBarItem.command = "go.test.showOutput";
 const neverAgain = { title: `Don't Show Again` };
 
 export function removeTestStatus(e: vscode.TextDocumentChangeEvent) {
@@ -26,23 +33,33 @@ export function removeTestStatus(e: vscode.TextDocumentChangeEvent) {
 		return;
 	}
 	statusBarItem.hide();
-	statusBarItem.text = '';
+	statusBarItem.text = "";
 }
 
-export function notifyIfGeneratedFile(this: void, e: vscode.TextDocumentChangeEvent) {
+export function notifyIfGeneratedFile(
+	this: void,
+	e: vscode.TextDocumentChangeEvent,
+) {
 	const ctx: any = this;
-	if (e.document.isUntitled || e.document.languageId !== 'go') {
+	if (e.document.isUntitled || e.document.languageId !== "go") {
 		return;
 	}
 	if (
-		ctx.globalState.get('ignoreGeneratedCodeWarning') !== true &&
-		e.document.lineAt(0).text.match(/^\/\/ Code generated .* DO NOT EDIT\.$/)
+		ctx.globalState.get("ignoreGeneratedCodeWarning") !== true &&
+		e.document
+			.lineAt(0)
+			.text.match(/^\/\/ Code generated .* DO NOT EDIT\.$/)
 	) {
-		vscode.window.showWarningMessage('This file seems to be generated. DO NOT EDIT.', neverAgain).then((result) => {
-			if (result === neverAgain) {
-				ctx.globalState.update('ignoreGeneratedCodeWarning', true);
-			}
-		});
+		vscode.window
+			.showWarningMessage(
+				"This file seems to be generated. DO NOT EDIT.",
+				neverAgain,
+			)
+			.then((result) => {
+				if (result === neverAgain) {
+					ctx.globalState.update("ignoreGeneratedCodeWarning", true);
+				}
+			});
 	}
 }
 
@@ -51,7 +68,10 @@ interface IToolCheckResults {
 	errors: ICheckResult[];
 }
 
-export function check(fileUri: vscode.Uri, goConfig: vscode.WorkspaceConfiguration): Promise<IToolCheckResults[]> {
+export function check(
+	fileUri: vscode.Uri,
+	goConfig: vscode.WorkspaceConfiguration,
+): Promise<IToolCheckResults[]> {
 	diagnosticsStatusBarItem.hide();
 	outputChannel.clear();
 	const runningToolsPromises = [];
@@ -60,7 +80,8 @@ export function check(fileUri: vscode.Uri, goConfig: vscode.WorkspaceConfigurati
 	// If a user has enabled diagnostics via a language server,
 	// then we disable running build or vet to avoid duplicate errors and warnings.
 	const lspConfig = parseLanguageServerConfig();
-	const disableBuildAndVet = lspConfig.enabled && lspConfig.features.diagnostics;
+	const disableBuildAndVet =
+		lspConfig.enabled && lspConfig.features.diagnostics;
 
 	let testPromise: Thenable<boolean>;
 	const testConfig: TestConfig = {
@@ -68,7 +89,7 @@ export function check(fileUri: vscode.Uri, goConfig: vscode.WorkspaceConfigurati
 		dir: cwd,
 		flags: getTestFlags(goConfig),
 		background: true,
-		applyCodeCoverage: !!goConfig['coverOnSave']
+		applyCodeCoverage: !!goConfig["coverOnSave"],
 	};
 
 	const runTest = () => {
@@ -83,48 +104,72 @@ export function check(fileUri: vscode.Uri, goConfig: vscode.WorkspaceConfigurati
 		return testPromise;
 	};
 
-	if (!disableBuildAndVet && !!goConfig['buildOnSave'] && goConfig['buildOnSave'] !== 'off') {
+	if (
+		!disableBuildAndVet &&
+		!!goConfig["buildOnSave"] &&
+		goConfig["buildOnSave"] !== "off"
+	) {
 		runningToolsPromises.push(
 			isModSupported(fileUri)
-				.then((isMod) => goBuild(fileUri, isMod, goConfig, goConfig['buildOnSave'] === 'workspace'))
-				.then((errors) => ({ diagnosticCollection: buildDiagnosticCollection, errors }))
+				.then((isMod) =>
+					goBuild(
+						fileUri,
+						isMod,
+						goConfig,
+						goConfig["buildOnSave"] === "workspace",
+					),
+				)
+				.then((errors) => ({
+					diagnosticCollection: buildDiagnosticCollection,
+					errors,
+				})),
 		);
 	}
 
-	if (!!goConfig['testOnSave']) {
+	if (!!goConfig["testOnSave"]) {
 		statusBarItem.show();
-		statusBarItem.text = 'Tests Running';
+		statusBarItem.text = "Tests Running";
 		runTest().then((success) => {
-			if (statusBarItem.text === '') {
+			if (statusBarItem.text === "") {
 				return;
 			}
 			if (success) {
-				statusBarItem.text = 'Tests Passed';
+				statusBarItem.text = "Tests Passed";
 			} else {
-				statusBarItem.text = 'Tests Failed';
+				statusBarItem.text = "Tests Failed";
 			}
 		});
 	}
 
-	if (!!goConfig['lintOnSave'] && goConfig['lintOnSave'] !== 'off') {
+	if (!!goConfig["lintOnSave"] && goConfig["lintOnSave"] !== "off") {
 		runningToolsPromises.push(
-			goLint(fileUri, goConfig, goConfig['lintOnSave']).then((errors) => ({
-				diagnosticCollection: lintDiagnosticCollection,
-				errors
-			}))
+			goLint(fileUri, goConfig, goConfig["lintOnSave"]).then(
+				(errors) => ({
+					diagnosticCollection: lintDiagnosticCollection,
+					errors,
+				}),
+			),
 		);
 	}
 
-	if (!disableBuildAndVet && !!goConfig['vetOnSave'] && goConfig['vetOnSave'] !== 'off') {
+	if (
+		!disableBuildAndVet &&
+		!!goConfig["vetOnSave"] &&
+		goConfig["vetOnSave"] !== "off"
+	) {
 		runningToolsPromises.push(
-			goVet(fileUri, goConfig, goConfig['vetOnSave'] === 'workspace').then((errors) => ({
+			goVet(
+				fileUri,
+				goConfig,
+				goConfig["vetOnSave"] === "workspace",
+			).then((errors) => ({
 				diagnosticCollection: vetDiagnosticCollection,
-				errors
-			}))
+				errors,
+			})),
 		);
 	}
 
-	if (!!goConfig['coverOnSave']) {
+	if (!!goConfig["coverOnSave"]) {
 		runTest().then((success) => {
 			if (!success) {
 				return [];

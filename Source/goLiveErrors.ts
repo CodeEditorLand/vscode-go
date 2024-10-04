@@ -3,15 +3,16 @@
  * Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------*/
 
-'use strict';
+"use strict";
 
-import cp = require('child_process');
-import path = require('path');
-import vscode = require('vscode');
-import { promptForMissingTool } from './goInstallTools';
-import { buildDiagnosticCollection } from './goMain';
-import { isModSupported } from './goModules';
-import { getBinPath, getGoConfig, getToolsEnvVars } from './util';
+import { promptForMissingTool } from "./goInstallTools";
+import { buildDiagnosticCollection } from "./goMain";
+import { isModSupported } from "./goModules";
+import { getBinPath, getGoConfig, getToolsEnvVars } from "./util";
+
+import cp = require("child_process");
+import path = require("path");
+import vscode = require("vscode");
 
 // Interface for settings configuration for adding and removing tags
 interface GoLiveErrorsConfig {
@@ -22,17 +23,17 @@ interface GoLiveErrorsConfig {
 let runner: NodeJS.Timer;
 
 export function goLiveErrorsEnabled() {
-	const goConfig = <GoLiveErrorsConfig>getGoConfig()['liveErrors'];
+	const goConfig = <GoLiveErrorsConfig>getGoConfig()["liveErrors"];
 	if (goConfig === null || goConfig === undefined || !goConfig.enabled) {
 		return false;
 	}
-	const files = vscode.workspace.getConfiguration('files', null);
-	const autoSave = files['autoSave'];
-	const autoSaveDelay = files['autoSaveDelay'];
+	const files = vscode.workspace.getConfiguration("files", null);
+	const autoSave = files["autoSave"];
+	const autoSaveDelay = files["autoSaveDelay"];
 	if (
 		autoSave !== null &&
 		autoSave !== undefined &&
-		autoSave === 'afterDelay' &&
+		autoSave === "afterDelay" &&
 		autoSaveDelay < goConfig.delay * 1.5
 	) {
 		return false;
@@ -46,7 +47,7 @@ export function parseLiveFile(e: vscode.TextDocumentChangeEvent) {
 	if (e.document.isUntitled) {
 		return;
 	}
-	if (e.document.languageId !== 'go') {
+	if (e.document.languageId !== "go") {
 		return;
 	}
 	if (!goLiveErrorsEnabled()) {
@@ -59,7 +60,7 @@ export function parseLiveFile(e: vscode.TextDocumentChangeEvent) {
 	runner = setTimeout(() => {
 		processFile(e);
 		runner = null;
-	}, getGoConfig(e.document.uri)['liveErrors']['delay']);
+	}, getGoConfig(e.document.uri)["liveErrors"]["delay"]);
 }
 
 // processFile does the actual work once the timeout has fired
@@ -69,18 +70,18 @@ async function processFile(e: vscode.TextDocumentChangeEvent) {
 		return;
 	}
 
-	const gotypeLive = getBinPath('gotype-live');
+	const gotypeLive = getBinPath("gotype-live");
 	if (!path.isAbsolute(gotypeLive)) {
-		return promptForMissingTool('gotype-live');
+		return promptForMissingTool("gotype-live");
 	}
 
 	const fileContents = e.document.getText();
 	const fileName = e.document.fileName;
-	const args = ['-e', '-a', '-lf=' + fileName, path.dirname(fileName)];
+	const args = ["-e", "-a", "-lf=" + fileName, path.dirname(fileName)];
 	const env = getToolsEnvVars();
 	const p = cp.execFile(gotypeLive, args, { env }, (err, stdout, stderr) => {
-		if (err && (<any>err).code === 'ENOENT') {
-			promptForMissingTool('gotype-live');
+		if (err && (<any>err).code === "ENOENT") {
+			promptForMissingTool("gotype-live");
 			return;
 		}
 
@@ -91,17 +92,27 @@ async function processFile(e: vscode.TextDocumentChangeEvent) {
 			// returns a non-zero exit status if the checks fail
 			const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
 
-			stderr.split('\n').forEach((error) => {
+			stderr.split("\n").forEach((error) => {
 				if (error === null || error.length === 0) {
 					return;
 				}
 				// extract the line, column and error message from the gotype output
-				const [_, file, line, column, message] = /^(.+):(\d+):(\d+):\s+(.+)/.exec(error);
+				const [_, file, line, column, message] =
+					/^(.+):(\d+):(\d+):\s+(.+)/.exec(error);
 				// get canonical file path
 				const canonicalFilePath = vscode.Uri.file(file).toString();
-				const range = new vscode.Range(+line - 1, +column, +line - 1, +column);
-				const diagnostic = new vscode.Diagnostic(range, message, vscode.DiagnosticSeverity.Error);
-				diagnostic.source = 'go';
+				const range = new vscode.Range(
+					+line - 1,
+					+column,
+					+line - 1,
+					+column,
+				);
+				const diagnostic = new vscode.Diagnostic(
+					range,
+					message,
+					vscode.DiagnosticSeverity.Error,
+				);
+				diagnostic.source = "go";
 
 				const diagnostics = diagnosticMap.get(canonicalFilePath) || [];
 				diagnostics.push(diagnostic);
@@ -109,7 +120,10 @@ async function processFile(e: vscode.TextDocumentChangeEvent) {
 			});
 
 			diagnosticMap.forEach((diagnostics, file) => {
-				buildDiagnosticCollection.set(vscode.Uri.parse(file), diagnostics);
+				buildDiagnosticCollection.set(
+					vscode.Uri.parse(file),
+					diagnostics,
+				);
 			});
 		}
 	});
