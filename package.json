@@ -1506,7 +1506,7 @@
 		"@types/deep-equal": "1.0.4",
 		"@types/fs-extra": "11.0.4",
 		"@types/glob": "8.1.0",
-		"@types/node": "22.7.9",
+		"@types/node": "22.8.1",
 		"@types/semver": "7.5.8",
 		"@types/sinon": "17.0.3",
 		"fs-extra": "11.2.0",
