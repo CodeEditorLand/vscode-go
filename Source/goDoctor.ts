@@ -33,14 +33,17 @@ type typeOfExtraction = "var" | "extract";
 
 async function extract(type: typeOfExtraction): Promise<void> {
 	const activeEditor = vscode.window.activeTextEditor;
+
 	if (!activeEditor) {
 		vscode.window.showInformationMessage("No editor is active.");
+
 		return;
 	}
 	if (activeEditor.selections.length !== 1) {
 		vscode.window.showInformationMessage(
 			`You need to have a single selection for extracting ${type === "var" ? "variable" : "method"}`,
 		);
+
 		return;
 	}
 
@@ -77,6 +80,7 @@ function runGoDoctor(
 	return new Promise((resolve, reject) => {
 		if (!isAbsolute(godoctor)) {
 			promptForMissingTool("godoctor");
+
 			return resolve();
 		}
 

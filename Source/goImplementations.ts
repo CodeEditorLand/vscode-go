@@ -50,18 +50,22 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 		// To keep `guru implements` fast we want to restrict the scope of the search to current workspace
 		// If no workspace is open, then no-op
 		const root = getWorkspaceFolderPath(document.uri);
+
 		if (!root) {
 			vscode.window.showInformationMessage(
 				"Cannot find implementations when there is no workspace open.",
 			);
+
 			return;
 		}
 
 		const goRuntimePath = getBinPath("go");
+
 		if (!goRuntimePath) {
 			vscode.window.showErrorMessage(
 				`Failed to run "go list" to get the scope to find implementations as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
 			);
+
 			return;
 		}
 
@@ -70,6 +74,7 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 				return resolve(null);
 			}
 			const env = getToolsEnvVars();
+
 			const listProcess = cp.execFile(
 				goRuntimePath,
 				["list", "-e", "-json"],
@@ -81,14 +86,21 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 					const listOutput = <GoListOutput>(
 						JSON.parse(stdout.toString())
 					);
+
 					const filename = canonicalizeGOPATHPrefix(
 						document.fileName,
 					);
+
 					const cwd = path.dirname(filename);
+
 					const offset = byteOffsetAt(document, position);
+
 					const goGuru = getBinPath("guru");
+
 					const buildTags = getGoConfig(document.uri)["buildTags"];
+
 					const args = buildTags ? ["-tags", buildTags] : [];
+
 					if (listOutput.Root && listOutput.ImportPath) {
 						args.push("-scope", `${listOutput.ImportPath}/...`);
 					}
@@ -105,6 +117,7 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 						(guruErr, guruStdOut, guruStdErr) => {
 							if (guruErr && (<any>guruErr).code === "ENOENT") {
 								promptForMissingTool("guru");
+
 								return resolve(null);
 							}
 
@@ -115,20 +128,25 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 							const guruOutput = <GuruImplementsOutput>(
 								JSON.parse(guruStdOut.toString())
 							);
+
 							const results: vscode.Location[] = [];
+
 							const addResults = (list: GuruImplementsRef[]) => {
 								list.forEach((ref: GuruImplementsRef) => {
 									const match = /^(.*):(\d+):(\d+)/.exec(
 										ref.pos,
 									);
+
 									if (!match) {
 										return;
 									}
 									const [_, file, lineStartStr, colStartStr] =
 										match;
+
 									const referenceResource = vscode.Uri.file(
 										path.resolve(cwd, file),
 									);
+
 									const range = new vscode.Range(
 										+lineStartStr - 1,
 										+colStartStr - 1,

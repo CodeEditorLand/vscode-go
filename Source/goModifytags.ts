@@ -34,6 +34,7 @@ interface GoTagsConfig {
 
 export function addTags(commandArgs: GoTagsConfig) {
 	const args = getCommonArgs();
+
 	if (!args) {
 		return;
 	}
@@ -62,6 +63,7 @@ export function addTags(commandArgs: GoTagsConfig) {
 
 export function removeTags(commandArgs: GoTagsConfig) {
 	const args = getCommonArgs();
+
 	if (!args) {
 		return;
 	}
@@ -88,12 +90,15 @@ export function removeTags(commandArgs: GoTagsConfig) {
 
 function getCommonArgs(): string[] {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showInformationMessage("No editor is active.");
+
 		return;
 	}
 	if (!editor.document.fileName.endsWith(".go")) {
 		vscode.window.showInformationMessage("Current file is not a Go file.");
+
 		return;
 	}
 	const args = [
@@ -103,6 +108,7 @@ function getCommonArgs(): string[] {
 		"-format",
 		"json",
 	];
+
 	if (
 		editor.selection.start.line === editor.selection.end.line &&
 		editor.selection.start.character === editor.selection.end.character
@@ -130,14 +136,17 @@ function getTagsAndOptions(
 		commandArgs && commandArgs.hasOwnProperty("tags")
 			? commandArgs["tags"]
 			: config["tags"];
+
 	const options =
 		commandArgs && commandArgs.hasOwnProperty("options")
 			? commandArgs["options"]
 			: config["options"];
+
 	const promptForTags =
 		commandArgs && commandArgs.hasOwnProperty("promptForTags")
 			? commandArgs["promptForTags"]
 			: config["promptForTags"];
+
 	const transformValue: string =
 		commandArgs && commandArgs.hasOwnProperty("transform")
 			? commandArgs["transform"]
@@ -166,8 +175,11 @@ function getTagsAndOptions(
 
 function runGomodifytags(args: string[]) {
 	const gomodifytags = getBinPath("gomodifytags");
+
 	const editor = vscode.window.activeTextEditor;
+
 	const input = getFileArchive(editor.document);
+
 	const p = cp.execFile(
 		gomodifytags,
 		args,
@@ -175,12 +187,14 @@ function runGomodifytags(args: string[]) {
 		(err, stdout, stderr) => {
 			if (err && (<any>err).code === "ENOENT") {
 				promptForMissingTool("gomodifytags");
+
 				return;
 			}
 			if (err) {
 				vscode.window.showInformationMessage(
 					`Cannot modify tags: ${stderr}`,
 				);
+
 				return;
 			}
 			const output = <GomodifytagsOutput>JSON.parse(stdout);
@@ -192,6 +206,7 @@ function runGomodifytags(args: string[]) {
 			});
 		},
 	);
+
 	if (p.pid) {
 		p.stdin.end(input);
 	}

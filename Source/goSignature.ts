@@ -35,6 +35,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 		let goConfig = this.goConfig || getGoConfig(document.uri);
 
 		const theCall = this.walkBackwardsToBeginningOfCall(document, position);
+
 		if (theCall == null) {
 			return Promise.resolve(null);
 		}
@@ -54,6 +55,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 				true,
 				token,
 			);
+
 			if (!res) {
 				// The definition was not found
 				return null;
@@ -65,15 +67,20 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 			let declarationText: string = (res.declarationlines || [])
 				.join(" ")
 				.trim();
+
 			if (!declarationText) {
 				return null;
 			}
 			const result = new SignatureHelp();
+
 			let sig: string;
+
 			let si: SignatureInformation;
+
 			if (res.toolUsed === "godef") {
 				// declaration is of the form "Add func(a int, b int) int"
 				const nameEnd = declarationText.indexOf(" ");
+
 				const sigStart = nameEnd + 5; // ' func'
 				const funcName = declarationText.substring(0, nameEnd);
 				sig = declarationText.substring(sigStart);
@@ -81,6 +88,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 			} else if (res.toolUsed === "gogetdoc") {
 				// declaration is of the form "func Add(a int, b int) int"
 				declarationText = declarationText.substring(5);
+
 				const funcNameStart = declarationText.indexOf(res.name + "("); // Find 'functionname(' to remove anything before it
 				if (funcNameStart > 0) {
 					declarationText = declarationText.substring(funcNameStart);
@@ -97,6 +105,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 				theCall.commas.length,
 				si.parameters.length - 1,
 			);
+
 			return result;
 		} catch (e) {
 			return null;
@@ -109,6 +118,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 	): Position {
 		while (position.character > 0) {
 			const word = document.getWordRangeAtPosition(position);
+
 			if (word) {
 				return word.start;
 			}
@@ -125,7 +135,9 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 		position: Position,
 	): { openParen: Position; commas: Position[] } | null {
 		let parenBalance = 0;
+
 		let maxLookupLines = 30;
+
 		const commas = [];
 
 		for (
@@ -153,6 +165,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 				switch (currentLine[char]) {
 					case "(":
 						parenBalance--;
+
 						if (parenBalance < 0) {
 							return {
 								openParen: new Position(lineNr, char),
@@ -160,11 +173,15 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 							};
 						}
 						break;
+
 					case ")":
 						parenBalance++;
+
 						break;
+
 					case ",":
 						const commaPos = new Position(lineNr, char);
+
 						if (
 							parenBalance === 0 &&
 							!isPositionInString(document, commaPos)

@@ -15,6 +15,7 @@ import rl = require("readline");
 import vscode = require("vscode");
 
 let gutterSvgs: { [key: string]: string };
+
 let decorators: {
 	type: string;
 	coveredGutterDecorator: vscode.TextEditorDecorationType;
@@ -22,6 +23,7 @@ let decorators: {
 	coveredHighlightDecorator: vscode.TextEditorDecorationType;
 	uncoveredHighlightDecorator: vscode.TextEditorDecorationType;
 };
+
 let decoratorConfig: {
 	[key: string]: any;
 	type: string;
@@ -58,7 +60,9 @@ export function initCoverageDecorators(ctx: vscode.ExtensionContext) {
 
 	// Update the coverageDecorator in User config, if they are using the old style.
 	const goConfig = getGoConfig();
+
 	const inspectResult = goConfig.inspect("coverageDecorator");
+
 	if (inspectResult) {
 		if (typeof inspectResult.globalValue === "string") {
 			goConfig.update(
@@ -156,6 +160,7 @@ interface CoverageData {
 }
 
 let coverageFiles: { [key: string]: CoverageData } = {};
+
 let isCoverageApplied: boolean = false;
 
 /**
@@ -193,6 +198,7 @@ export function applyCodeCoverageToAllEditors(
 				const fileRange = data.match(
 					/([^:]+)\:([\d]+)\.([\d]+)\,([\d]+)\.([\d]+)\s([\d]+)\s([\d]+)/,
 				);
+
 				if (!fileRange) {
 					return;
 				}
@@ -201,7 +207,9 @@ export function applyCodeCoverageToAllEditors(
 					packageDirPath,
 					path.basename(fileRange[1]),
 				);
+
 				const coverage = getCoverageData(filePath);
+
 				const range = new vscode.Range(
 					// Start Line converted to zero based
 					parseInt(fileRange[2], 10) - 1,
@@ -242,6 +250,7 @@ function getCoverageData(filePath: string): CoverageData {
 	}
 	if (process.platform === "win32") {
 		const parts = filePath.split("/");
+
 		if (parts.length) {
 			filePath = parts.join(path.sep);
 		}
@@ -260,6 +269,7 @@ function setCoverageData(filePath: string, data: CoverageData) {
 	}
 	if (process.platform === "win32") {
 		const parts = filePath.split("/");
+
 		if (parts.length) {
 			filePath = parts.join(path.sep);
 		}
@@ -281,11 +291,15 @@ export function applyCodeCoverage(editor: vscode.TextEditor) {
 	}
 
 	const cfg = getGoConfig(editor.document.uri);
+
 	const coverageOptions = cfg["coverageOptions"];
+
 	for (const filename in coverageFiles) {
 		if (editor.document.uri.fsPath.endsWith(filename)) {
 			isCoverageApplied = true;
+
 			const coverageData = coverageFiles[filename];
+
 			if (
 				coverageOptions === "showCoveredCodeOnly" ||
 				coverageOptions === "showBothCoveredAndUncoveredCode"
@@ -375,21 +389,27 @@ export function trackCodeCoverageRemovalOnFileChange(
  */
 export async function toggleCoverageCurrentPackage() {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showInformationMessage("No editor is active.");
+
 		return;
 	}
 
 	if (isCoverageApplied) {
 		clearCoverage();
+
 		return;
 	}
 
 	const goConfig = getGoConfig();
+
 	const cwd = path.dirname(editor.document.uri.fsPath);
 
 	const testFlags = getTestFlags(goConfig);
+
 	const isMod = await isModSupported(editor.document.uri);
+
 	const testConfig: TestConfig = {
 		goConfig,
 		dir: cwd,
@@ -415,7 +435,9 @@ export function isPartOfComment(e: vscode.TextDocumentChangeEvent): boolean {
 		}
 
 		const text = e.document.lineAt(change.range.start).text;
+
 		const idx = text.search("//");
+
 		return idx > -1 && idx <= change.range.start.character;
 	});
 }

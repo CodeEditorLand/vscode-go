@@ -37,20 +37,26 @@ function vscodeKindFromGoCodeClass(
 	switch (kind) {
 		case "const":
 			return vscode.CompletionItemKind.Constant;
+
 		case "package":
 			return vscode.CompletionItemKind.Module;
+
 		case "type":
 			switch (type) {
 				case "struct":
 					return vscode.CompletionItemKind.Class;
+
 				case "interface":
 					return vscode.CompletionItemKind.Interface;
 			}
 			return vscode.CompletionItemKind.Struct;
+
 		case "func":
 			return vscode.CompletionItemKind.Function;
+
 		case "var":
 			return vscode.CompletionItemKind.Variable;
+
 		case "import":
 			return vscode.CompletionItemKind.Module;
 	}
@@ -72,7 +78,9 @@ class ExtendedCompletionItem extends vscode.CompletionItem {
 }
 
 const lineCommentFirstWordRegex = /^\s*\/\/\s+[\S]*$/;
+
 const exportedMemberRegex = /(const|func|type|var)(\s+\(.*\))?\s+([A-Z]\w*)/;
+
 const gocodeNoSupportForgbMsgKey = "dontshowNoSupportForgb";
 
 export class GoCompletionItemProvider
@@ -127,6 +135,7 @@ export class GoCompletionItemProvider
 
 		if (typeof item.package === "undefined") {
 			promptForUpdatingTool("gocode");
+
 			return;
 		}
 
@@ -139,10 +148,12 @@ export class GoCompletionItemProvider
 		)
 			.then((doc) => {
 				item.documentation = new vscode.MarkdownString(doc);
+
 				return item;
 			})
 			.catch((err) => {
 				console.log(err);
+
 				return item;
 			});
 	}
@@ -156,12 +167,14 @@ export class GoCompletionItemProvider
 		// Completions for the package statement based on the file name
 		const pkgStatementCompletions =
 			await getPackageStatementCompletions(document);
+
 		if (pkgStatementCompletions && pkgStatementCompletions.length) {
 			return pkgStatementCompletions;
 		}
 
 		this.excludeDocs = false;
 		this.gocodeFlags = ["-f=json"];
+
 		if (Array.isArray(config["gocodeFlags"])) {
 			this.gocodeFlags.push(...config["gocodeFlags"]);
 		}
@@ -170,11 +183,14 @@ export class GoCompletionItemProvider
 			return new Promise<vscode.CompletionItem[] | vscode.CompletionList>(
 				(resolve, reject) => {
 					const filename = document.fileName;
+
 					const lineText = document.lineAt(position.line).text;
+
 					const lineTillCurrentPosition = lineText.substr(
 						0,
 						position.character,
 					);
+
 					const autocompleteUnimportedPackages =
 						config["autocompleteUnimportedPackages"] === true &&
 						!lineText.match(/^(\s)*(import|package)(\s)+/);
@@ -184,6 +200,7 @@ export class GoCompletionItemProvider
 						document,
 						position,
 					);
+
 					if (commentCompletion) {
 						return resolve([commentCompletion]);
 					}
@@ -193,17 +210,21 @@ export class GoCompletionItemProvider
 					}
 
 					const inString = isPositionInString(document, position);
+
 					if (!inString && lineTillCurrentPosition.endsWith('"')) {
 						return resolve([]);
 					}
 
 					const currentWord = getCurrentWord(document, position);
+
 					if (currentWord.match(/^\d+$/)) {
 						return resolve([]);
 					}
 
 					let offset = byteOffsetAt(document, position);
+
 					let inputText = document.getText();
+
 					const includeUnimportedPkgs =
 						autocompleteUnimportedPackages &&
 						!inString &&
@@ -233,14 +254,17 @@ export class GoCompletionItemProvider
 							const pkgPath = this.getPackagePathFromLine(
 								lineTillCurrentPosition,
 							);
+
 							if (pkgPath.length === 1) {
 								// Now that we have the package path, import it right after the "package" statement
 								const { imports, pkg } = parseFilePrelude(
 									vscode.window.activeTextEditor.document.getText(),
 								);
+
 								const posToAddImport = document.offsetAt(
 									new vscode.Position(pkg.start + 1, 0),
 								);
+
 								const textToAdd = `import "${pkgPath[0]}"\n`;
 								inputText =
 									inputText.substr(0, posToAddImport) +
@@ -305,7 +329,9 @@ export class GoCompletionItemProvider
 
 	public dispose() {
 		const gocodeName = this.isGoMod ? "gocode-gomod" : "gocode";
+
 		const gocode = getBinPath(gocodeName);
+
 		if (path.isAbsolute(gocode)) {
 			cp.spawn(gocode, ["close"], { env: getToolsEnvVars() });
 		}
@@ -325,14 +351,19 @@ export class GoCompletionItemProvider
 	): Thenable<vscode.CompletionItem[]> {
 		return new Promise<vscode.CompletionItem[]>((resolve, reject) => {
 			const gocodeName = this.isGoMod ? "gocode-gomod" : "gocode";
+
 			const gocode = getBinPath(gocodeName);
+
 			if (!path.isAbsolute(gocode)) {
 				promptForMissingTool(gocodeName);
+
 				return reject();
 			}
 
 			const env = getToolsEnvVars();
+
 			let stdout = "";
+
 			let stderr = "";
 
 			// stamblerre/gocode does not support -unimported-packages flags.
@@ -340,6 +371,7 @@ export class GoCompletionItemProvider
 				const unimportedPkgIndex = this.gocodeFlags.indexOf(
 					"-unimported-packages",
 				);
+
 				if (unimportedPkgIndex >= 0) {
 					this.gocodeFlags.splice(unimportedPkgIndex, 1);
 				}
@@ -347,6 +379,7 @@ export class GoCompletionItemProvider
 
 			// -exclude-docs is something we use internally and is not related to gocode
 			const excludeDocsIndex = this.gocodeFlags.indexOf("-exclude-docs");
+
 			if (excludeDocsIndex >= 0) {
 				this.gocodeFlags.splice(excludeDocsIndex, 1);
 				this.excludeDocs = true;
@@ -363,6 +396,7 @@ export class GoCompletionItemProvider
 			p.on("error", (err) => {
 				if (err && (<any>err).code === "ENOENT") {
 					promptForMissingTool(gocodeName);
+
 					return reject();
 				}
 				return reject(err);
@@ -391,12 +425,16 @@ export class GoCompletionItemProvider
 					const results = <[number, GoCodeSuggestion[]]>(
 						JSON.parse(stdout.toString())
 					);
+
 					let suggestions: vscode.CompletionItem[] = [];
+
 					const packageSuggestions: string[] = [];
 
 					const wordAtPosition =
 						document.getWordRangeAtPosition(position);
+
 					let areCompletionsForPackageSymbols = false;
+
 					if (results && results[1]) {
 						for (const suggest of results[1]) {
 							if (inString && suggest.class !== "import") {
@@ -413,6 +451,7 @@ export class GoCompletionItemProvider
 							item.receiver = suggest.receiver;
 							item.fileName = document.fileName;
 							item.detail = suggest.type;
+
 							if (
 								!areCompletionsForPackageSymbols &&
 								item.package &&
@@ -423,6 +462,7 @@ export class GoCompletionItemProvider
 							if (suggest.class === "package") {
 								const possiblePackageImportPaths =
 									this.getPackageImportPath(item.label);
+
 								if (possiblePackageImportPaths.length === 1) {
 									item.detail = possiblePackageImportPaths[0];
 								}
@@ -464,13 +504,17 @@ export class GoCompletionItemProvider
 									getParametersAndReturnType(
 										suggest.type.substring(4),
 									);
+
 								const paramSnippets = [];
+
 								for (let i = 0; i < params.length; i++) {
 									let param = params[i].trim();
+
 									if (param) {
 										param = param
 											.replace("${", "\\${")
 											.replace("}", "\\}");
+
 										if (
 											config[
 												"useCodeSnippetsOnFunctionSuggestWithoutType"
@@ -505,13 +549,17 @@ export class GoCompletionItemProvider
 									getParametersAndReturnType(
 										suggest.type.substring(4),
 									);
+
 								const paramSnippets = [];
+
 								for (let i = 0; i < params.length; i++) {
 									let param = params[i].trim();
+
 									if (param) {
 										param = param
 											.replace("${", "\\${")
 											.replace("}", "\\}");
+
 										if (!param.includes(" ")) {
 											// If we don't have an argument name, we need to create one
 											param =
@@ -559,12 +607,14 @@ export class GoCompletionItemProvider
 								auxItem.filterText = suggest.name;
 								auxItem.detail = "Method snippet";
 								auxItem.sortText = "b";
+
 								const prefix =
 									"func (" +
 									suggest.name[0].toLowerCase() +
 									" *" +
 									suggest.name +
 									")";
+
 								const snippet =
 									prefix +
 									" ${1:methodName}(${2}) ${3} {\n\t$0\n}";
@@ -601,6 +651,7 @@ export class GoCompletionItemProvider
 					reject(e);
 				}
 			});
+
 			if (p.pid) {
 				p.stdin.end(inputText);
 			}
@@ -612,7 +663,9 @@ export class GoCompletionItemProvider
 		goConfig: vscode.WorkspaceConfiguration,
 	): Thenable<void> {
 		const currentFile = fileuri.fsPath;
+
 		let checkModSupport = Promise.resolve(this.isGoMod);
+
 		if (
 			this.previousFile !== currentFile &&
 			this.previousFileDir !== path.dirname(currentFile)
@@ -637,6 +690,7 @@ export class GoCompletionItemProvider
 
 		const setGocodeProps = new Promise<void>((resolve, reject) => {
 			const gocode = getBinPath("gocode");
+
 			const env = getToolsEnvVars();
 
 			cp.execFile(gocode, ["set"], { env }, (err, stdout, stderr) => {
@@ -661,11 +715,14 @@ export class GoCompletionItemProvider
 							});
 					}
 					this.setGocodeOptions = false;
+
 					return resolve();
 				}
 
 				const existingOptions = stdout.split(/\r\n|\n/);
+
 				const optionsToSet: string[][] = [];
+
 				const setOption = () => {
 					const [name, value] = optionsToSet.pop();
 					cp.execFile(gocode, ["set", name, value], { env }, () => {
@@ -718,7 +775,9 @@ export class GoCompletionItemProvider
 	// Given a line ending with dot, return the import paths of packages that match with the word preceeding the dot
 	private getPackagePathFromLine(line: string): string[] {
 		const pattern = /(\w+)\.$/g;
+
 		const wordmatches = pattern.exec(line);
+
 		if (!wordmatches) {
 			return [];
 		}
@@ -740,6 +799,7 @@ export class GoCompletionItemProvider
 				matchingPackages.push(pkgPath);
 			}
 		});
+
 		return matchingPackages;
 	}
 }
@@ -754,6 +814,7 @@ function getCommentCompletion(
 	position: vscode.Position,
 ): vscode.CompletionItem {
 	const lineText = document.lineAt(position.line).text;
+
 	const lineTillCurrentPosition = lineText.substr(0, position.character);
 	// triggering completions in comments on exported members
 	if (
@@ -761,8 +822,11 @@ function getCommentCompletion(
 		position.line + 1 < document.lineCount
 	) {
 		const nextLine = document.lineAt(position.line + 1).text.trim();
+
 		const memberType = nextLine.match(exportedMemberRegex);
+
 		let suggestionItem: vscode.CompletionItem;
+
 		if (memberType && memberType.length === 4) {
 			suggestionItem = new vscode.CompletionItem(
 				memberType[3],
@@ -779,7 +843,9 @@ function getCurrentWord(
 ): string {
 	// get current word
 	const wordAtPosition = document.getWordRangeAtPosition(position);
+
 	let currentWord = "";
+
 	if (wordAtPosition && wordAtPosition.start.character < position.character) {
 		const word = document.getText(wordAtPosition);
 		currentWord = word.substr(
@@ -806,6 +872,7 @@ function getKeywordCompletions(currentWord: string): vscode.CompletionItem[] {
 			);
 		}
 	});
+
 	return completionItems;
 }
 
@@ -823,11 +890,14 @@ function getPackageCompletions(
 	importedPackages: string[] = [],
 ): vscode.CompletionItem[] {
 	const cwd = path.dirname(document.fileName);
+
 	const goWorkSpace = getCurrentGoWorkspaceFromGOPATH(
 		getCurrentGoPath(),
 		cwd,
 	);
+
 	const workSpaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+
 	const currentPkgRootPath = (
 		workSpaceFolder ? workSpaceFolder.uri.path : cwd
 	).slice(goWorkSpace.length + 1);
@@ -836,6 +906,7 @@ function getPackageCompletions(
 
 	allPkgMap.forEach((info: PackageInfo, pkgPath: string) => {
 		const pkgName = info.name;
+
 		if (
 			pkgName.startsWith(currentWord) &&
 			importedPackages.indexOf(pkgName) === -1
@@ -864,6 +935,7 @@ function getPackageCompletions(
 			completionItems.push(item);
 		}
 	});
+
 	return completionItems;
 }
 
@@ -872,17 +944,21 @@ async function getPackageStatementCompletions(
 ): Promise<vscode.CompletionItem[]> {
 	// 'Smart Snippet' for package clause
 	const inputText = document.getText();
+
 	if (inputText.match(/package\s+(\w+)/)) {
 		return [];
 	}
 
 	const pkgNames = await guessPackageNameFromFile(document.fileName);
+
 	const suggestions = pkgNames.map((pkgName) => {
 		const packageItem = new vscode.CompletionItem("package " + pkgName);
 		packageItem.kind = vscode.CompletionItemKind.Snippet;
 		packageItem.insertText = "package " + pkgName + "\r\n\r\n";
+
 		return packageItem;
 	});
+
 	return suggestions;
 }
 
@@ -893,17 +969,21 @@ export async function getCompletionsWithoutGoCode(
 	// Completions for the package statement based on the file name
 	const pkgStatementCompletions =
 		await getPackageStatementCompletions(document);
+
 	if (pkgStatementCompletions && pkgStatementCompletions.length) {
 		return pkgStatementCompletions;
 	}
 
 	const lineText = document.lineAt(position.line).text;
+
 	const config = getGoConfig(document.uri);
+
 	const autocompleteUnimportedPackages =
 		config["autocompleteUnimportedPackages"] === true &&
 		!lineText.match(/^(\s)*(import|package)(\s)+/);
 
 	const commentCompletion = getCommentCompletion(document, position);
+
 	if (commentCompletion) {
 		return [commentCompletion];
 	}
@@ -913,26 +993,31 @@ export async function getCompletionsWithoutGoCode(
 	}
 
 	const currentWord = getCurrentWord(document, position);
+
 	if (!currentWord.length) {
 		return [];
 	}
 
 	// gocode does not suggest keywords, so we have to do it
 	const completionItems: any[] = getKeywordCompletions(currentWord);
+
 	if (!autocompleteUnimportedPackages) {
 		return completionItems;
 	}
 
 	const isMod = await isModSupported(document.uri);
+
 	if (isMod) {
 		return completionItems;
 	}
 
 	const pkgMap = await getImportablePackages(document.fileName, true);
+
 	const packageCompletions = getPackageCompletions(
 		document,
 		currentWord,
 		pkgMap,
 	);
+
 	return packageCompletions.concat(completionItems);
 }

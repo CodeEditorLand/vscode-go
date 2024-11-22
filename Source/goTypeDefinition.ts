@@ -52,6 +52,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 		token: vscode.CancellationToken,
 	): vscode.ProviderResult<vscode.Definition> {
 		const adjustedPos = adjustWordPosition(document, position);
+
 		if (!adjustedPos[0]) {
 			return Promise.resolve(null);
 		}
@@ -59,17 +60,23 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 
 		return new Promise<vscode.Definition>((resolve, reject) => {
 			const goGuru = getBinPath("guru");
+
 			if (!path.isAbsolute(goGuru)) {
 				promptForMissingTool("guru");
+
 				return reject(
 					'Cannot find tool "guru" to find type definitions.',
 				);
 			}
 
 			const filename = canonicalizeGOPATHPrefix(document.fileName);
+
 			const offset = byteOffsetAt(document, position);
+
 			const env = getToolsEnvVars();
+
 			const buildTags = getGoConfig(document.uri)["buildTags"];
+
 			const args = buildTags ? ["-tags", buildTags] : [];
 			args.push(
 				"-json",
@@ -86,6 +93,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 					try {
 						if (guruErr && (<any>guruErr).code === "ENOENT") {
 							promptForMissingTool("guru");
+
 							return resolve(null);
 						}
 
@@ -96,6 +104,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 						const guruOutput = <GuruDescribeOutput>(
 							JSON.parse(stdout.toString())
 						);
+
 						if (!guruOutput.value || !guruOutput.value.typespos) {
 							if (
 								guruOutput.value &&
@@ -126,6 +135,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 									const definitionResource = vscode.Uri.file(
 										definitionInfo.file,
 									);
+
 									const pos = new vscode.Position(
 										definitionInfo.line,
 										definitionInfo.column,
@@ -139,6 +149,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 								},
 								(err) => {
 									const miss = parseMissingError(err);
+
 									if (miss[0]) {
 										promptForMissingTool(miss[1]);
 									} else if (err) {
@@ -152,11 +163,14 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 						const results: vscode.Location[] = [];
 						guruOutput.value.typespos.forEach((ref) => {
 							const match = /^(.*):(\d+):(\d+)/.exec(ref.objpos);
+
 							if (!match) {
 								return;
 							}
 							const [_, file, line, col] = match;
+
 							const referenceResource = vscode.Uri.file(file);
+
 							const pos = new vscode.Position(
 								parseInt(line, 10) - 1,
 								parseInt(col, 10) - 1,
@@ -172,6 +186,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 					}
 				},
 			);
+
 			if (process.pid) {
 				process.stdin.end(getFileArchive(document));
 			}

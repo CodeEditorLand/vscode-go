@@ -42,6 +42,7 @@ interface LanguageServerConfig {
 	env: any;
 	features: {
 		diagnostics: boolean;
+
 		documentLink: boolean;
 	};
 	checkForUpdates: boolean;
@@ -51,8 +52,11 @@ interface LanguageServerConfig {
 // They are global so that the server can be easily restarted with
 // new configurations.
 let languageClient: LanguageClient;
+
 let languageServerDisposable: vscode.Disposable;
+
 let latestConfig: LanguageServerConfig;
+
 let serverOutputChannel: vscode.OutputChannel;
 
 // startLanguageServer starts the language server (if enabled), returning
@@ -68,6 +72,7 @@ export async function registerLanguageFeatures(
 	);
 
 	const config = parseLanguageServerConfig();
+
 	if (!config.enabled) {
 		return false;
 	}
@@ -83,6 +88,7 @@ export async function registerLanguageFeatures(
 	// update their gopls version.
 	if (config.serverName === "gopls") {
 		const tool = getTool(config.serverName);
+
 		if (!tool) {
 			return false;
 		}
@@ -91,6 +97,7 @@ export async function registerLanguageFeatures(
 			config.path,
 			config.checkForUpdates,
 		);
+
 		if (versionToUpdate) {
 			promptForUpdatingTool(tool.name, versionToUpdate);
 		}
@@ -112,6 +119,7 @@ async function startLanguageServer(
 			languageClient.diagnostics.clear();
 		}
 		await languageClient.stop();
+
 		if (languageServerDisposable) {
 			languageServerDisposable.dispose();
 		}
@@ -204,18 +212,21 @@ function buildLanguageClient(config: LanguageServerConfig) {
 							"editor.parameterHints",
 							document.uri,
 						)["enabled"];
+
 					const goParamHintsEnabled =
 						vscode.workspace.getConfiguration("[go]", document.uri)[
 							"editor.parameterHints.enabled"
 						];
 
 					let paramHintsEnabled: boolean = false;
+
 					if (typeof goParamHintsEnabled === "undefined") {
 						paramHintsEnabled = editorParamHintsEnabled;
 					} else {
 						paramHintsEnabled = goParamHintsEnabled;
 					}
 					let cmd: Command;
+
 					if (paramHintsEnabled) {
 						cmd = {
 							title: "triggerParameterHints",
@@ -248,6 +259,7 @@ function buildLanguageClient(config: LanguageServerConfig) {
 					const isThenable = <T>(
 						obj: vscode.ProviderResult<T>,
 					): obj is Thenable<T> => obj && (<any>obj)["then"];
+
 					if (
 						isThenable<
 							| vscode.CompletionItem[]
@@ -267,6 +279,7 @@ function buildLanguageClient(config: LanguageServerConfig) {
 		const capabilities =
 			languageClient.initializeResult &&
 			languageClient.initializeResult.capabilities;
+
 		if (!capabilities) {
 			return vscode.window.showErrorMessage(
 				"The language server is not able to serve any features at the moment.",
@@ -281,6 +294,7 @@ function watchLanguageServerConfiguration(e: vscode.ConfigurationChangeEvent) {
 	}
 
 	const config = parseLanguageServerConfig();
+
 	let reloadMessage: string;
 
 	// If the user has disabled or enabled the language server.
@@ -319,9 +333,13 @@ function watchLanguageServerConfiguration(e: vscode.ConfigurationChangeEvent) {
 
 export function parseLanguageServerConfig(): LanguageServerConfig {
 	const goConfig = getGoConfig();
+
 	const toolsEnv = getToolsEnvVars();
+
 	const languageServerPath = getLanguageServerToolPath();
+
 	const languageServerName = getToolFromToolPath(languageServerPath);
+
 	return {
 		serverName: languageServerName,
 		path: languageServerPath,
@@ -349,6 +367,7 @@ export function parseLanguageServerConfig(): LanguageServerConfig {
 export function getLanguageServerToolPath(): string {
 	// If language server is not enabled, return
 	const goConfig = getGoConfig();
+
 	if (!goConfig["useLanguageServer"]) {
 		return;
 	}
@@ -358,22 +377,27 @@ export function getLanguageServerToolPath(): string {
 		vscode.window.showInformationMessage(
 			"The Go language server is currently not supported in a multi-root set-up with different GOPATHs.",
 		);
+
 		return;
 	}
 	// Get the path to gopls (getBinPath checks for alternate tools).
 	const goplsBinaryPath = getBinPath("gopls");
+
 	if (path.isAbsolute(goplsBinaryPath)) {
 		return goplsBinaryPath;
 	}
 	const alternateTools = goConfig["alternateTools"];
+
 	if (alternateTools) {
 		// The user's alternate language server was not found.
 		const goplsAlternate = alternateTools["gopls"];
+
 		if (goplsAlternate) {
 			vscode.window.showErrorMessage(
 				`Cannot find the alternate tool ${goplsAlternate} configured for gopls.
 Please install it and reload this VS Code window.`,
 			);
+
 			return;
 		}
 		// Check if the user has the deprecated "go-langserver" setting.
@@ -382,6 +406,7 @@ Please install it and reload this VS Code window.`,
 			vscode.window
 				.showErrorMessage(`Support for "go-langserver" has been deprecated.
 The recommended language server is gopls. Delete the alternate tool setting for "go-langserver" to use gopls, or change "go-langserver" to "gopls" in your settings.json and reload the VS Code window.`);
+
 			return;
 		}
 	}
@@ -400,6 +425,7 @@ function allFoldersHaveSameGopath(): boolean {
 	const tempGopath = getCurrentGoPath(
 		vscode.workspace.workspaceFolders[0].uri,
 	);
+
 	return vscode.workspace.workspaceFolders.find(
 		(x) => tempGopath !== getCurrentGoPath(x.uri),
 	)
@@ -408,7 +434,9 @@ function allFoldersHaveSameGopath(): boolean {
 }
 
 const acceptGoplsPrerelease = false;
+
 const defaultLatestVersion = semver.coerce("0.4.0");
+
 const defaultLatestVersionTime = moment("2020-04-08", "YYYY-MM-DD");
 async function shouldUpdateLanguageServer(
 	tool: Tool,
@@ -453,6 +481,7 @@ async function shouldUpdateLanguageServer(
 		let latestTime = makeProxyCall
 			? await goplsVersionTimestamp(tool, latestVersion)
 			: defaultLatestVersionTime;
+
 		if (!latestTime) {
 			latestTime = defaultLatestVersionTime;
 		}
@@ -473,6 +502,7 @@ const pseudoVersionRE =
 
 function parsePseudoversionTimestamp(version: string): moment.Moment {
 	const split = version.split("-");
+
 	if (split.length < 2) {
 		return null;
 	}
@@ -483,20 +513,27 @@ function parsePseudoversionTimestamp(version: string): moment.Moment {
 		return null;
 	}
 	const sv = semver.coerce(version);
+
 	if (!sv) {
 		return null;
 	}
 	// Copied from src/cmd/go/internal/modfetch.go.
 	const build = sv.build.join(".");
+
 	const buildIndex = version.lastIndexOf(build);
+
 	if (buildIndex >= 0) {
 		version = version.substring(0, buildIndex);
 	}
 	const lastDashIndex = version.lastIndexOf("-");
 	version = version.substring(0, lastDashIndex);
+
 	const firstDashIndex = version.lastIndexOf("-");
+
 	const dotIndex = version.lastIndexOf(".");
+
 	let timestamp: string;
+
 	if (dotIndex > firstDashIndex) {
 		// "vX.Y.Z-pre.0" or "vX.Y.(Z+1)-0"
 		timestamp = version.substring(dotIndex + 1);
@@ -512,10 +549,12 @@ async function goplsVersionTimestamp(
 	version: semver.SemVer,
 ): Promise<moment.Moment> {
 	const data = await goProxyRequest(tool, `v${version.format()}.info`);
+
 	if (!data) {
 		return null;
 	}
 	const time = moment(data["Time"]);
+
 	return time;
 }
 
@@ -524,16 +563,19 @@ async function latestGopls(tool: Tool): Promise<semver.SemVer> {
 	// ask the proxy for the latest version, and if the user's version is older,
 	// prompt them to update.
 	const data = await goProxyRequest(tool, "list");
+
 	if (!data) {
 		return null;
 	}
 	// Coerce the versions into SemVers so that they can be sorted correctly.
 	const versions = [];
+
 	for (const version of data.trim().split("\n")) {
 		const parsed = semver.parse(version, {
 			includePrerelease: true,
 			loose: true,
 		});
+
 		if (parsed) {
 			versions.push(parsed);
 		}
@@ -554,8 +596,11 @@ async function latestGopls(tool: Tool): Promise<semver.SemVer> {
 
 async function goplsVersion(goplsPath: string): Promise<string> {
 	const env = getToolsEnvVars();
+
 	const execFile = util.promisify(cp.execFile);
+
 	let output: any;
+
 	try {
 		const { stdout } = await execFile(goplsPath, ["version"], { env });
 		output = stdout;
@@ -566,19 +611,23 @@ async function goplsVersion(goplsPath: string): Promise<string> {
 	}
 
 	const lines = <string>output.trim().split("\n");
+
 	switch (lines.length) {
 		case 0:
 			// No results, should update.
 			// Worth doing anything here?
 			return null;
+
 		case 1:
 			// Built in $GOPATH mode. Should update.
 			// TODO: Should we check the Go version here?
 			// Do we even allow users to enable gopls if their Go version is too low?
 			return null;
+
 		case 2:
 			// We might actually have a parseable version.
 			break;
+
 		default:
 			return null;
 	}
@@ -598,6 +647,7 @@ async function goplsVersion(goplsPath: string): Promise<string> {
 	//    golang.org/x/tools/gopls@v0.1.3
 	//
 	const split = moduleVersion.trim().split("@");
+
 	if (split.length < 2) {
 		return null;
 	}
@@ -617,7 +667,9 @@ async function goProxyRequest(tool: Tool, endpoint: string): Promise<any> {
 			continue;
 		}
 		const url = `${proxy}/${tool.importPath}/@v/${endpoint}`;
+
 		let data: string;
+
 		try {
 			data = await WebRequest.json<string>(url, {
 				throwResponseError: true,
@@ -632,9 +684,11 @@ async function goProxyRequest(tool: Tool, endpoint: string): Promise<any> {
 
 function goProxy(): string[] {
 	const output: string = process.env["GOPROXY"];
+
 	if (!output || !output.trim()) {
 		return [];
 	}
 	const split = output.trim().split(",");
+
 	return split;
 }

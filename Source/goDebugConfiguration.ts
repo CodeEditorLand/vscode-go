@@ -49,6 +49,7 @@ export class GoDebugConfigurationProvider
 		}
 
 		const activeEditor = vscode.window.activeTextEditor;
+
 		if (!debugConfiguration || !debugConfiguration.request) {
 			// if 'request' is missing interpret this as a missing launch.json
 			if (!activeEditor || activeEditor.document.languageId !== "go") {
@@ -68,6 +69,7 @@ export class GoDebugConfigurationProvider
 			packagePathToGoModPathMap;
 
 		const gopath = getCurrentGoPath(folder ? folder.uri : undefined);
+
 		if (!debugConfiguration["env"]) {
 			debugConfiguration["env"] = { GOPATH: gopath };
 		} else if (!debugConfiguration["env"]["GOPATH"]) {
@@ -75,6 +77,7 @@ export class GoDebugConfigurationProvider
 		}
 
 		const goConfig = getGoConfig(folder && folder.uri);
+
 		const goToolsEnvVars = getToolsEnvVars();
 		Object.keys(goToolsEnvVars).forEach((key) => {
 			if (!debugConfiguration["env"].hasOwnProperty(key)) {
@@ -83,7 +86,9 @@ export class GoDebugConfigurationProvider
 		});
 
 		const dlvConfig = goConfig.get<any>("delveConfig");
+
 		let useApiV1 = false;
+
 		if (debugConfiguration.hasOwnProperty("useApiV1")) {
 			useApiV1 = debugConfiguration["useApiV1"] === true;
 		} else if (dlvConfig.hasOwnProperty("useApiV1")) {
@@ -119,8 +124,10 @@ export class GoDebugConfigurationProvider
 		}
 
 		debugConfiguration["dlvToolPath"] = getBinPath("dlv");
+
 		if (!path.isAbsolute(debugConfiguration["dlvToolPath"])) {
 			promptForMissingTool("dlv");
+
 			return;
 		}
 
@@ -157,6 +164,7 @@ export class GoDebugConfigurationProvider
 
 	private showWarning(ignoreWarningKey: string, warningMessage: string) {
 		const ignoreWarning = getFromGlobalState(ignoreWarningKey);
+
 		if (ignoreWarning) {
 			return;
 		}

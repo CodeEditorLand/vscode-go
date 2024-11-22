@@ -30,8 +30,11 @@ export class GoDocumentFormattingEditProvider
 		}
 
 		const filename = document.fileName;
+
 		const goConfig = getGoConfig(document.uri);
+
 		const formatTool = goConfig["formatTool"] || "goreturns";
+
 		const formatFlags = goConfig["formatFlags"].slice() || [];
 
 		// We ignore the -w flag that updates file on disk because that would break undo feature
@@ -61,10 +64,12 @@ export class GoDocumentFormattingEditProvider
 					err.startsWith("flag provided but not defined: -srcdir")
 				) {
 					promptForUpdatingTool(formatTool);
+
 					return Promise.resolve([]);
 				}
 				if (err) {
 					console.log(err);
+
 					return Promise.reject(
 						"Check the console in dev tools to find errors when formatting.",
 					);
@@ -84,13 +89,18 @@ export class GoDocumentFormattingEditProvider
 		return new Promise<vscode.TextEdit[]>((resolve, reject) => {
 			if (!path.isAbsolute(formatCommandBinPath)) {
 				promptForMissingTool(formatTool);
+
 				return reject();
 			}
 
 			const t0 = Date.now();
+
 			const env = getToolsEnvVars();
+
 			const cwd = path.dirname(document.fileName);
+
 			let stdout = "";
+
 			let stderr = "";
 
 			// Use spawn instead of exec to avoid maxBufferExceeded error
@@ -102,6 +112,7 @@ export class GoDocumentFormattingEditProvider
 			p.on("error", (err) => {
 				if (err && (<any>err).code === "ENOENT") {
 					promptForMissingTool(formatTool);
+
 					return reject();
 				}
 			});
@@ -113,8 +124,10 @@ export class GoDocumentFormattingEditProvider
 				// Return the complete file content in the edit.
 				// VS Code will calculate minimal edits to be applied
 				const fileStart = new vscode.Position(0, 0);
+
 				const fileEnd = document.lineAt(document.lineCount - 1).range
 					.end;
+
 				const textEdits: vscode.TextEdit[] = [
 					new vscode.TextEdit(
 						new vscode.Range(fileStart, fileEnd),
@@ -124,6 +137,7 @@ export class GoDocumentFormattingEditProvider
 
 				const timeTaken = Date.now() - t0;
 				sendTelemetryEventForFormatting(formatTool, timeTaken);
+
 				if (timeTaken > 750) {
 					console.log(
 						`Formatting took too long(${timeTaken}ms). Format On Save feature could be aborted.`,
@@ -131,6 +145,7 @@ export class GoDocumentFormattingEditProvider
 				}
 				return resolve(textEdits);
 			});
+
 			if (p.pid) {
 				p.stdin.end(document.getText());
 			}

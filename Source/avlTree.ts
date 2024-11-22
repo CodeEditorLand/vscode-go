@@ -85,6 +85,7 @@ export class Node<K, V> {
 		other.right = this;
 		this.height = Math.max(this.leftHeight, this.rightHeight) + 1;
 		other.height = Math.max(other.leftHeight, this.height) + 1;
+
 		return other;
 	}
 
@@ -103,6 +104,7 @@ export class Node<K, V> {
 		other.left = this;
 		this.height = Math.max(this.leftHeight, this.rightHeight) + 1;
 		other.height = Math.max(other.rightHeight, this.height) + 1;
+
 		return other;
 	}
 }
@@ -189,6 +191,7 @@ export class NearestNeighborDict<K, V> {
 
 		// Update height and rebalance tree
 		root.height = Math.max(root.leftHeight, root.rightHeight) + 1;
+
 		const balanceState = this._getBalanceState(root);
 
 		if (balanceState === BalanceState.UNBALANCED_LEFT) {
@@ -198,6 +201,7 @@ export class NearestNeighborDict<K, V> {
 			} else {
 				// Left right case
 				root.left = root.left.rotateLeft();
+
 				return root.rotateRight();
 			}
 		}
@@ -209,6 +213,7 @@ export class NearestNeighborDict<K, V> {
 			} else {
 				// Right left case
 				root.right = root.right.rotateRight();
+
 				return root.rotateLeft();
 			}
 		}
@@ -231,6 +236,7 @@ export class NearestNeighborDict<K, V> {
 		closest: Node<K, V>,
 	): Node<K, V> {
 		const result = this.compare(key, root.key);
+
 		if (result === 0) {
 			return root;
 		}
@@ -259,21 +265,28 @@ export class NearestNeighborDict<K, V> {
 	 */
 	private _getBalanceState(node: Node<K, V>): BalanceState {
 		const heightDifference = node.leftHeight - node.rightHeight;
+
 		switch (heightDifference) {
 			case -2:
 				return BalanceState.UNBALANCED_RIGHT;
+
 			case -1:
 				return BalanceState.SLIGHTLY_UNBALANCED_RIGHT;
+
 			case 1:
 				return BalanceState.SLIGHTLY_UNBALANCED_LEFT;
+
 			case 2:
 				return BalanceState.UNBALANCED_LEFT;
+
 			case 0:
 				return BalanceState.BALANCED;
+
 			default: {
 				console.error(
 					"Internal error: Avl tree should never be more than two levels unbalanced",
 				);
+
 				if (heightDifference > 0) {
 					return BalanceState.UNBALANCED_LEFT;
 				}

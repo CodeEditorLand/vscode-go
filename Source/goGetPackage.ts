@@ -15,16 +15,21 @@ import vscode = require("vscode");
 
 export function goGetPackage() {
 	const editor = vscode.window.activeTextEditor;
+
 	const selection = editor.selection;
+
 	const selectedText = editor.document.lineAt(selection.active.line).text;
 
 	const importPath = getImportPath(selectedText);
+
 	if (importPath === "") {
 		vscode.window.showErrorMessage("No import path to get");
+
 		return;
 	}
 
 	const goRuntimePath = getBinPath("go");
+
 	if (!goRuntimePath) {
 		return vscode.window.showErrorMessage(
 			`Failed to run "go get" to get package as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
@@ -44,6 +49,7 @@ export function goGetPackage() {
 				outputChannel.clear();
 				outputChannel.appendLine(stderr);
 				buildCode();
+
 				return;
 			}
 

@@ -92,9 +92,11 @@ export class GoVersion {
 
 	constructor(version: string) {
 		const matchesRelease = /go version go(\d.\d+).*/.exec(version);
+
 		const matchesDevel = /go version devel \+(.[a-zA-Z0-9]+).*/.exec(
 			version,
 		);
+
 		if (matchesRelease) {
 			this.sv = semver.coerce(matchesRelease[0]);
 		} else if (matchesDevel) {
@@ -131,7 +133,9 @@ export class GoVersion {
 }
 
 let cachedGoVersion: GoVersion = null;
+
 let vendorSupport: boolean = null;
+
 let toolsGopath: string;
 
 export function getGoConfig(uri?: vscode.Uri): vscode.WorkspaceConfiguration {
@@ -150,7 +154,9 @@ export function byteOffsetAt(
 	position: vscode.Position,
 ): number {
 	const offset = document.offsetAt(position);
+
 	const text = document.getText();
+
 	return Buffer.byteLength(text.substr(0, offset));
 }
 
@@ -166,10 +172,14 @@ export interface Prelude {
 
 export function parseFilePrelude(text: string): Prelude {
 	const lines = text.split("\n");
+
 	const ret: Prelude = { imports: [], pkg: null };
+
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];
+
 		const pkgMatch = line.match(/^(\s)*package(\s)+(\w+)/);
+
 		if (pkgMatch) {
 			ret.pkg = { start: i, end: i, name: pkgMatch[3] };
 		}
@@ -188,6 +198,7 @@ export function parseFilePrelude(text: string): Prelude {
 		} else if (ret.imports.length) {
 			if (ret.imports[ret.imports.length - 1].end === -1) {
 				const importPkgMatch = line.match(/"([^"]+)"/);
+
 				if (importPkgMatch) {
 					ret.imports[ret.imports.length - 1].pkgs.push(
 						importPkgMatch[1],
@@ -211,18 +222,25 @@ export function parseFilePrelude(text: string): Prelude {
 //     (pattern string, handler func(ResponseWriter, *Request)) {
 export function getParametersAndReturnType(signature: string): {
 	params: string[];
+
 	returnType: string;
 } {
 	const params: string[] = [];
+
 	let parenCount = 0;
+
 	let lastStart = 1;
+
 	for (let i = 1; i < signature.length; i++) {
 		switch (signature[i]) {
 			case "(":
 				parenCount++;
+
 				break;
+
 			case ")":
 				parenCount--;
+
 				if (parenCount < 0) {
 					if (i > lastStart) {
 						params.push(signature.substring(lastStart, i));
@@ -236,6 +254,7 @@ export function getParametersAndReturnType(signature: string): {
 					};
 				}
 				break;
+
 			case ",":
 				if (parenCount === 0) {
 					params.push(signature.substring(lastStart, i));
@@ -249,15 +268,18 @@ export function getParametersAndReturnType(signature: string): {
 
 export function canonicalizeGOPATHPrefix(filename: string): string {
 	const gopath: string = getCurrentGoPath();
+
 	if (!gopath) {
 		return filename;
 	}
 	const workspaces = gopath.split(path.delimiter);
+
 	const filenameLowercase = filename.toLowerCase();
 
 	// In case of multiple workspaces, find current workspace by checking if current file is
 	// under any of the workspaces in $GOPATH
 	let currentWorkspace: string = null;
+
 	for (const workspace of workspaces) {
 		// In case of nested workspaces, (example: both /Users/me and /Users/me/a/b/c are in $GOPATH)
 		// both parent & child workspace in the nested workspaces pair can make it inside the above if block
@@ -283,6 +305,7 @@ export function canonicalizeGOPATHPrefix(filename: string): string {
  */
 export function getStringHash(value: string): number {
 	let hash = 5381;
+
 	let i = value.length;
 
 	while (i) {
@@ -318,15 +341,18 @@ export async function getGoVersion(): Promise<GoVersion> {
 		console.warn(
 			`Failed to run "go version" as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
 		);
+
 		return Promise.resolve(null);
 	}
 	if (cachedGoVersion && (cachedGoVersion.sv || cachedGoVersion.isDevel)) {
 		sendTelemetryEventForGoVersion(cachedGoVersion.format());
+
 		return Promise.resolve(cachedGoVersion);
 	}
 	return new Promise<GoVersion>((resolve) => {
 		cp.execFile(goRuntimePath, ["version"], {}, (err, stdout, stderr) => {
 			cachedGoVersion = new GoVersion(stdout);
+
 			if (!cachedGoVersion.sv && !cachedGoVersion.isDevel) {
 				if (err || stderr) {
 					console.log(
@@ -352,13 +378,16 @@ export async function isVendorSupported(): Promise<boolean> {
 		return Promise.resolve(vendorSupport);
 	}
 	const goVersion = await getGoVersion();
+
 	if (!goVersion.sv) {
 		return process.env["GO15VENDOREXPERIMENT"] === "0" ? false : true;
 	}
 	switch (goVersion.sv.major) {
 		case 0:
 			vendorSupport = false;
+
 			break;
+
 		case 1:
 			vendorSupport =
 				goVersion.sv.minor > 6 ||
@@ -366,9 +395,12 @@ export async function isVendorSupported(): Promise<boolean> {
 					process.env["GO15VENDOREXPERIMENT"] === "1")
 					? true
 					: false;
+
 			break;
+
 		default:
 			vendorSupport = true;
+
 			break;
 	}
 	return vendorSupport;
@@ -392,6 +424,7 @@ export function isGoPathSet(): boolean {
 					);
 				}
 			});
+
 		return false;
 	}
 
@@ -403,15 +436,18 @@ export function isPositionInString(
 	position: vscode.Position,
 ): boolean {
 	const lineText = document.lineAt(position.line).text;
+
 	const lineTillCurrentPosition = lineText.substr(0, position.character);
 
 	// Count the number of double quotes in the line till current position. Ignore escaped double quotes
 	let doubleQuotesCnt = (lineTillCurrentPosition.match(/\"/g) || []).length;
+
 	const escapedDoubleQuotesCnt = (
 		lineTillCurrentPosition.match(/\\\"/g) || []
 	).length;
 
 	doubleQuotesCnt -= escapedDoubleQuotesCnt;
+
 	return doubleQuotesCnt % 2 === 1;
 }
 
@@ -459,6 +495,7 @@ function resolveToolsGopath(): string {
 			toolsGopathFromConfig,
 			folder.uri.fsPath,
 		);
+
 		if (toolsGopathFromConfig) {
 			return toolsGopathFromConfig;
 		}
@@ -468,6 +505,7 @@ function resolveToolsGopath(): string {
 export function getBinPath(tool: string): string {
 	const alternateTools: { [key: string]: string } =
 		getGoConfig().get("alternateTools");
+
 	const alternateToolPath: string = alternateTools[tool];
 
 	return getBinPathWithPreferredGopath(
@@ -479,6 +517,7 @@ export function getBinPath(tool: string): string {
 
 export function getFileArchive(document: vscode.TextDocument): string {
 	const fileContents = document.getText();
+
 	return (
 		document.fileName +
 		"\n" +
@@ -490,9 +529,11 @@ export function getFileArchive(document: vscode.TextDocument): string {
 
 export function getToolsEnvVars(): any {
 	const config = getGoConfig();
+
 	const toolsEnvVars = config["toolsEnvVars"];
 
 	const gopath = getCurrentGoPath();
+
 	const envVars = Object.assign(
 		{},
 		process.env,
@@ -523,21 +564,26 @@ export function getCurrentGoPath(workspaceUri?: vscode.Uri): string {
 	const activeEditorUri =
 		vscode.window.activeTextEditor &&
 		vscode.window.activeTextEditor.document.uri;
+
 	const currentFilePath = fixDriveCasingInWindows(
 		activeEditorUri && activeEditorUri.fsPath,
 	);
+
 	const currentRoot =
 		(workspaceUri && workspaceUri.fsPath) ||
 		getWorkspaceFolderPath(activeEditorUri);
+
 	const config = getGoConfig(workspaceUri || activeEditorUri);
 
 	// Infer the GOPATH from the current root or the path of the file opened in current editor
 	// Last resort: Check for the common case where GOPATH itself is opened directly in VS Code
 	let inferredGopath: string;
+
 	if (config["inferGopath"] === true) {
 		inferredGopath =
 			getInferredGopath(currentRoot) ||
 			getInferredGopath(currentFilePath);
+
 		if (!inferredGopath) {
 			try {
 				if (fs.statSync(path.join(currentRoot, "src")).isDirectory()) {
@@ -562,6 +608,7 @@ export function getCurrentGoPath(workspaceUri?: vscode.Uri): string {
 	currentGopath = inferredGopath
 		? inferredGopath
 		: configGopath || process.env["GOPATH"];
+
 	return currentGopath;
 }
 
@@ -573,6 +620,7 @@ export function getModuleCache(): string {
 
 export function getExtensionCommands(): any[] {
 	const pkgJSON = vscode.extensions.getExtension(extensionId).packageJSON;
+
 	if (!pkgJSON.contributes || !pkgJSON.contributes.commands) {
 		return;
 	}
@@ -581,6 +629,7 @@ export function getExtensionCommands(): any[] {
 		.packageJSON.contributes.commands.filter(
 			(x: any) => x.command !== "go.show.commands",
 		);
+
 	return extensionCommands;
 }
 
@@ -591,8 +640,10 @@ export class LineBuffer {
 
 	public append(chunk: string) {
 		this.buf += chunk;
+
 		do {
 			const idx = this.buf.indexOf("\n");
+
 			if (idx === -1) {
 				break;
 			}
@@ -665,6 +716,7 @@ export function getImportPath(text: string): string {
 	const singleLineImportMatches = text.match(
 		/^\s*import\s+([a-z,A-Z,_,\.]\w*\s+)?\"([^\"]+)\"/,
 	);
+
 	if (singleLineImportMatches) {
 		return singleLineImportMatches[2];
 	}
@@ -673,6 +725,7 @@ export function getImportPath(text: string): string {
 	const groupImportMatches = text.match(
 		/^\s*([a-z,A-Z,_,\.]\w*\s+)?\"([^\"]+)\"/,
 	);
+
 	if (groupImportMatches) {
 		return groupImportMatches[2];
 	}
@@ -700,12 +753,15 @@ export function getImportPath(text: string): string {
 export function guessPackageNameFromFile(filePath: string): Promise<string[]> {
 	return new Promise((resolve, reject) => {
 		const goFilename = path.basename(filePath);
+
 		if (goFilename === "main.go") {
 			return resolve(["main"]);
 		}
 
 		const directoryPath = path.dirname(filePath);
+
 		const dirName = path.basename(directoryPath);
+
 		let segments = dirName.split(/[\.-]/);
 		segments = segments.filter((val) => val !== "go");
 
@@ -760,10 +816,12 @@ export function runTool(
 	token?: vscode.CancellationToken,
 ): Promise<ICheckResult[]> {
 	let cmd: string;
+
 	if (toolName) {
 		cmd = getBinPath(toolName);
 	} else {
 		const goRuntimePath = getBinPath("go");
+
 		if (!goRuntimePath) {
 			return Promise.reject(
 				new Error(
@@ -775,6 +833,7 @@ export function runTool(
 	}
 
 	let p: cp.ChildProcess;
+
 	if (token) {
 		token.onCancellationRequested(() => {
 			if (p) {
@@ -783,6 +842,7 @@ export function runTool(
 		});
 	}
 	cwd = fixDriveCasingInWindows(cwd);
+
 	return new Promise((resolve, reject) => {
 		p = cp.execFile(cmd, args, { env, cwd }, (err, stdout, stderr) => {
 			try {
@@ -790,6 +850,7 @@ export function runTool(
 					// Since the tool is run on save which can be frequent
 					// we avoid sending explicit notification if tool is missing
 					console.log(`Cannot find ${toolName ? toolName : "go"}`);
+
 					return resolve([]);
 				}
 				if (err && stderr && !useStdErr) {
@@ -797,6 +858,7 @@ export function runTool(
 						["Error while running tool:", cmd, ...args].join(" "),
 					);
 					outputChannel.appendLine(stderr);
+
 					return resolve([]);
 				}
 				const lines = (useStdErr ? stderr : stdout)
@@ -807,17 +869,22 @@ export function runTool(
 				);
 
 				const ret: ICheckResult[] = [];
+
 				let unexpectedOutput = false;
+
 				let atLeastSingleMatch = false;
+
 				for (const l of lines) {
 					if (l[0] === "\t" && ret.length > 0) {
 						ret[ret.length - 1].msg += "\n" + l;
+
 						continue;
 					}
 					const match =
 						/^([^:]*: )?((.:)?[^:]*):(\d+)(:(\d+)?)?:(?:\w+:)? (.*)$/.exec(
 							l,
 						);
+
 					if (!match) {
 						if (printUnexpectedOutput && useStdErr && stderr) {
 							unexpectedOutput = true;
@@ -825,8 +892,11 @@ export function runTool(
 						continue;
 					}
 					atLeastSingleMatch = true;
+
 					const [, , file, , lineStr, , colStr, msg] = match;
+
 					const line = +lineStr;
+
 					const col = +colStr;
 
 					// Building skips vendor folders,
@@ -850,6 +920,7 @@ export function runTool(
 					vscode.window.activeTextEditor
 				) {
 					outputChannel.appendLine(stderr);
+
 					if (err) {
 						ret.push({
 							file: vscode.window.activeTextEditor.document
@@ -880,8 +951,11 @@ export function handleDiagnosticErrors(
 	const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
 	errors.forEach((error) => {
 		const canonicalFile = vscode.Uri.file(error.file).toString();
+
 		let startColumn = 0;
+
 		let endColumn = 1;
+
 		if (document && document.uri.toString() === canonicalFile) {
 			const tempRange = new vscode.Range(
 				error.line - 1,
@@ -889,8 +963,11 @@ export function handleDiagnosticErrors(
 				error.line - 1,
 				document.lineAt(error.line - 1).range.end.character + 1,
 			);
+
 			const text = document.getText(tempRange);
+
 			const [_, leading, trailing] = /^(\s*).*(\s*)$/.exec(text);
+
 			if (!error.col) {
 				startColumn = leading.length;
 			} else {
@@ -904,10 +981,14 @@ export function handleDiagnosticErrors(
 			error.line - 1,
 			endColumn,
 		);
+
 		const severity = mapSeverityToVSCodeSeverity(error.severity);
+
 		const diagnostic = new vscode.Diagnostic(range, error.msg, severity);
 		diagnostic.source = diagnosticCollection.name;
+
 		let diagnostics = diagnosticMap.get(canonicalFile);
+
 		if (!diagnostics) {
 			diagnostics = [];
 		}
@@ -957,6 +1038,7 @@ function deDupeDiagnostics(
 	const buildDiagnosticsLines = buildDiagnostics.map(
 		(x) => x.range.start.line,
 	);
+
 	return otherDiagnostics.filter(
 		(x) => buildDiagnosticsLines.indexOf(x.range.start.line) === -1,
 	);
@@ -966,8 +1048,10 @@ function mapSeverityToVSCodeSeverity(sev: string): vscode.DiagnosticSeverity {
 	switch (sev) {
 		case "error":
 			return vscode.DiagnosticSeverity.Error;
+
 		case "warning":
 			return vscode.DiagnosticSeverity.Warning;
+
 		default:
 			return vscode.DiagnosticSeverity.Error;
 	}
@@ -976,6 +1060,7 @@ function mapSeverityToVSCodeSeverity(sev: string): vscode.DiagnosticSeverity {
 export function getWorkspaceFolderPath(fileUri?: vscode.Uri): string {
 	if (fileUri) {
 		const workspace = vscode.workspace.getWorkspaceFolder(fileUri);
+
 		if (workspace) {
 			return fixDriveCasingInWindows(workspace.uri.fsPath);
 		}
@@ -983,6 +1068,7 @@ export function getWorkspaceFolderPath(fileUri?: vscode.Uri): string {
 
 	// fall back to the first workspace
 	const folders = vscode.workspace.workspaceFolders;
+
 	if (folders && folders.length) {
 		return fixDriveCasingInWindows(folders[0].uri.fsPath);
 	}
@@ -1002,8 +1088,10 @@ export function killProcess(p: cp.ChildProcess) {
 			p.kill();
 		} catch (e) {
 			console.log("Error killing process: " + e);
+
 			if (e && e.message && e.stack) {
 				const matches = e.stack.match(/(src.go[a-z,A-Z]+\.js)/g);
+
 				if (matches) {
 					sendTelemetryEventForKillingProcess(e.message, matches);
 				}
@@ -1020,8 +1108,10 @@ export function makeMemoizedByteOffsetConverter(
 		defaultValue,
 		NearestNeighborDict.NUMERIC_DISTANCE_FUNCTION,
 	);
+
 	return (byteOffset: number) => {
 		const nearest = memo.getNearest(byteOffset);
+
 		const byteDelta = byteOffset - nearest.key;
 
 		if (byteDelta === 0) {
@@ -1029,6 +1119,7 @@ export function makeMemoizedByteOffsetConverter(
 		}
 
 		let charDelta: number;
+
 		if (byteDelta > 0) {
 			charDelta = buffer.toString("utf8", nearest.key, byteOffset).length;
 		} else {
@@ -1037,6 +1128,7 @@ export function makeMemoizedByteOffsetConverter(
 		}
 
 		memo.insert(byteOffset, nearest.value + charDelta);
+
 		return nearest.value + charDelta;
 	};
 }
@@ -1045,6 +1137,7 @@ export function rmdirRecursive(dir: string) {
 	if (fs.existsSync(dir)) {
 		fs.readdirSync(dir).forEach((file) => {
 			const relPath = path.join(dir, file);
+
 			if (fs.lstatSync(relPath).isDirectory()) {
 				rmdirRecursive(dir);
 			} else {
@@ -1102,6 +1195,7 @@ export function runGodoc(
 	}
 
 	const goRuntimePath = getBinPath("go");
+
 	if (!goRuntimePath) {
 		return Promise.reject(
 			new Error(
@@ -1113,6 +1207,7 @@ export function runGodoc(
 	const getCurrentPackagePromise = path.isAbsolute(packagePath)
 		? getCurrentPackage(packagePath)
 		: Promise.resolve(packagePath);
+
 	return getCurrentPackagePromise.then((packageImportPath) => {
 		return new Promise<string>((resolve, reject) => {
 			if (receiver) {
@@ -1121,7 +1216,9 @@ export function runGodoc(
 			}
 
 			const env = getToolsEnvVars();
+
 			const args = ["doc", "-c", "-cmd", "-u", packageImportPath, symbol];
+
 			const p = cp.execFile(
 				goRuntimePath,
 				args,
@@ -1131,7 +1228,9 @@ export function runGodoc(
 						return reject(err.message || stderr);
 					}
 					let doc = "";
+
 					const godocLines = stdout.split("\n");
+
 					if (!godocLines.length) {
 						return resolve(doc);
 					}
@@ -1140,6 +1239,7 @@ export function runGodoc(
 					// tht we dont need.
 					if (godocLines[0].startsWith("package ")) {
 						godocLines.splice(0, 1);
+
 						if (!godocLines[0].trim()) {
 							godocLines.splice(0, 1);
 						}
@@ -1147,6 +1247,7 @@ export function runGodoc(
 
 					// Skip trailing empty lines
 					let lastLine = godocLines.length - 1;
+
 					for (; lastLine > 1; lastLine--) {
 						if (godocLines[lastLine].trim()) {
 							break;
@@ -1183,6 +1284,7 @@ export function isPositionInComment(
 	position: vscode.Position,
 ): boolean {
 	const lineText = document.lineAt(position.line).text;
+
 	const commentIndex = lineText.indexOf("//");
 
 	if (commentIndex >= 0 && position.character > commentIndex) {
@@ -1190,6 +1292,7 @@ export function isPositionInComment(
 			position.line,
 			commentIndex,
 		);
+
 		const isCommentInString = isPositionInString(document, commentPosition);
 
 		return !isCommentInString;

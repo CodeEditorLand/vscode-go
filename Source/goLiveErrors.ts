@@ -24,12 +24,16 @@ let runner: NodeJS.Timer;
 
 export function goLiveErrorsEnabled() {
 	const goConfig = <GoLiveErrorsConfig>getGoConfig()["liveErrors"];
+
 	if (goConfig === null || goConfig === undefined || !goConfig.enabled) {
 		return false;
 	}
 	const files = vscode.workspace.getConfiguration("files", null);
+
 	const autoSave = files["autoSave"];
+
 	const autoSaveDelay = files["autoSaveDelay"];
+
 	if (
 		autoSave !== null &&
 		autoSave !== undefined &&
@@ -66,22 +70,29 @@ export function parseLiveFile(e: vscode.TextDocumentChangeEvent) {
 // processFile does the actual work once the timeout has fired
 async function processFile(e: vscode.TextDocumentChangeEvent) {
 	const isMod = await isModSupported(e.document.uri);
+
 	if (isMod) {
 		return;
 	}
 
 	const gotypeLive = getBinPath("gotype-live");
+
 	if (!path.isAbsolute(gotypeLive)) {
 		return promptForMissingTool("gotype-live");
 	}
 
 	const fileContents = e.document.getText();
+
 	const fileName = e.document.fileName;
+
 	const args = ["-e", "-a", "-lf=" + fileName, path.dirname(fileName)];
+
 	const env = getToolsEnvVars();
+
 	const p = cp.execFile(gotypeLive, args, { env }, (err, stdout, stderr) => {
 		if (err && (<any>err).code === "ENOENT") {
 			promptForMissingTool("gotype-live");
+
 			return;
 		}
 
@@ -101,12 +112,14 @@ async function processFile(e: vscode.TextDocumentChangeEvent) {
 					/^(.+):(\d+):(\d+):\s+(.+)/.exec(error);
 				// get canonical file path
 				const canonicalFilePath = vscode.Uri.file(file).toString();
+
 				const range = new vscode.Range(
 					+line - 1,
 					+column,
 					+line - 1,
 					+column,
 				);
+
 				const diagnostic = new vscode.Diagnostic(
 					range,
 					message,
@@ -127,6 +140,7 @@ async function processFile(e: vscode.TextDocumentChangeEvent) {
 			});
 		}
 	});
+
 	if (p.pid) {
 		p.stdin.end(fileContents);
 	}

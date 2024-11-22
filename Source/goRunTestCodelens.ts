@@ -34,12 +34,15 @@ export class GoRunTestCodeLensProvider extends GoBaseCodeLensProvider {
 			return [];
 		}
 		const config = getGoConfig(document.uri);
+
 		const codeLensConfig = config.get<{ [key: string]: any }>(
 			"enableCodeLens",
 		);
+
 		const codelensEnabled = codeLensConfig
 			? codeLensConfig["runtest"]
 			: false;
+
 		if (!codelensEnabled || !document.fileName.endsWith("_test.go")) {
 			return [];
 		}
@@ -49,6 +52,7 @@ export class GoRunTestCodeLensProvider extends GoBaseCodeLensProvider {
 			this.getCodeLensForFunctions(config, document, token),
 		]).then(([pkg, fns]) => {
 			let res: any[] = [];
+
 			if (pkg && Array.isArray(pkg)) {
 				res = res.concat(pkg);
 			}
@@ -64,15 +68,19 @@ export class GoRunTestCodeLensProvider extends GoBaseCodeLensProvider {
 		token: CancellationToken,
 	): Promise<CodeLens[]> {
 		const documentSymbolProvider = new GoDocumentSymbolProvider();
+
 		const symbols = await documentSymbolProvider.provideDocumentSymbols(
 			document,
 			token,
 		);
+
 		const pkg = symbols[0];
+
 		if (!pkg) {
 			return [];
 		}
 		const range = pkg.range;
+
 		const packageCodeLens = [
 			new CodeLens(range, {
 				title: "run package tests",
@@ -83,6 +91,7 @@ export class GoRunTestCodeLensProvider extends GoBaseCodeLensProvider {
 				command: "go.test.file",
 			}),
 		];
+
 		if (
 			symbols[0].children.some(
 				(sym) =>
@@ -156,6 +165,7 @@ export class GoRunTestCodeLensProvider extends GoBaseCodeLensProvider {
 		);
 
 		await Promise.all([testPromise, benchmarkPromise]);
+
 		return codelens;
 	}
 }

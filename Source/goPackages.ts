@@ -34,12 +34,14 @@ export interface PackageInfo {
 }
 
 let gopkgsNotified: boolean = false;
+
 let cacheTimeout: number = 5000;
 
 const gopkgsSubscriptions: Map<string, GopkgsDone[]> = new Map<
 	string,
 	GopkgsDone[]
 >();
+
 const gopkgsRunning: Set<string> = new Set<string>();
 
 const allPkgsCache: Map<string, Cache> = new Map<string, Cache>();
@@ -48,32 +50,41 @@ const pkgRootDirs = new Map<string, string>();
 
 function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 	const gopkgsBinPath = getBinPath("gopkgs");
+
 	if (!path.isAbsolute(gopkgsBinPath)) {
 		promptForMissingTool("gopkgs");
+
 		return Promise.resolve(new Map<string, PackageInfo>());
 	}
 
 	const t0 = Date.now();
+
 	return new Promise<Map<string, PackageInfo>>((resolve, reject) => {
 		const args = ["-format", "{{.Name}};{{.ImportPath}};{{.Dir}}"];
+
 		if (workDir) {
 			args.push("-workDir", workDir);
 		}
 
 		const cmd = cp.spawn(gopkgsBinPath, args, { env: getToolsEnvVars() });
+
 		const chunks: any[] = [];
+
 		const errchunks: any[] = [];
+
 		let err: any;
 		cmd.stdout.on("data", (d) => chunks.push(d));
 		cmd.stderr.on("data", (d) => errchunks.push(d));
 		cmd.on("error", (e) => (err = e));
 		cmd.on("close", () => {
 			const pkgs = new Map<string, PackageInfo>();
+
 			if (err && err.code === "ENOENT") {
 				return promptForMissingTool("gopkgs");
 			}
 
 			const errorMsg = errchunks.join("").trim() || (err && err.message);
+
 			if (errorMsg) {
 				if (
 					errorMsg.startsWith(
@@ -88,10 +99,13 @@ function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 				console.log(
 					`Running gopkgs failed with "${errorMsg}"\nCheck if you can run \`gopkgs -format {{.Name}};{{.ImportPath}}\` in a terminal successfully.`,
 				);
+
 				return resolve(pkgs);
 			}
 			const goroot = process.env["GOROOT"];
+
 			const output = chunks.join("");
+
 			if (output.indexOf(";") === -1) {
 				// User might be using the old gopkgs tool, prompt to update
 				promptForUpdatingTool("gopkgs");
@@ -100,6 +114,7 @@ function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 						return;
 					}
 					const index = pkgPath.lastIndexOf("/");
+
 					const pkgName =
 						index === -1 ? pkgPath : pkgPath.substr(index + 1);
 					pkgs.set(pkgPath, {
@@ -107,6 +122,7 @@ function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 						isStd: !pkgPath.includes("."),
 					});
 				});
+
 				return resolve(pkgs);
 			}
 			output.split("\n").forEach((pkgDetail) => {
@@ -123,9 +139,11 @@ function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 					isStd: goroot === null ? false : pkgDir.startsWith(goroot),
 				});
 			});
+
 			const timeTaken = Date.now() - t0;
 			sendTelemetryEventForGopkgs(timeTaken);
 			cacheTimeout = timeTaken > 5000 ? timeTaken : 5000;
+
 			return resolve(pkgs);
 		});
 	});
@@ -141,6 +159,7 @@ function getAllPackagesNoCache(
 		};
 
 		let subs = gopkgsSubscriptions.get(workDir);
+
 		if (!subs) {
 			subs = [];
 			gopkgsSubscriptions.set(workDir, subs);
@@ -169,14 +188,18 @@ export async function getAllPackages(
 	workDir: string,
 ): Promise<Map<string, PackageInfo>> {
 	const cache = allPkgsCache.get(workDir);
+
 	const useCache =
 		cache && new Date().getTime() - cache.lastHit < cacheTimeout;
+
 	if (useCache) {
 		cache.lastHit = new Date().getTime();
+
 		return Promise.resolve(cache.entry);
 	}
 
 	const pkgs = await getAllPackagesNoCache(workDir);
+
 	if (!pkgs || pkgs.size === 0) {
 		if (!gopkgsNotified) {
 			vscode.window.showInformationMessage(
@@ -189,6 +212,7 @@ export async function getAllPackages(
 		entry: pkgs,
 		lastHit: new Date().getTime(),
 	});
+
 	return pkgs;
 }
 
@@ -204,10 +228,13 @@ export function getImportablePackages(
 	useCache: boolean = false,
 ): Promise<Map<string, PackageInfo>> {
 	filePath = fixDriveCasingInWindows(filePath);
+
 	const fileDirPath = path.dirname(filePath);
 
 	let foundPkgRootDir = pkgRootDirs.get(fileDirPath);
+
 	const workDir = foundPkgRootDir || fileDirPath;
+
 	const cache = allPkgsCache.get(workDir);
 
 	const getAllPackagesPromise: Promise<Map<string, PackageInfo>> =
@@ -218,6 +245,7 @@ export function getImportablePackages(
 	return Promise.all([isVendorSupported(), getAllPackagesPromise]).then(
 		([vendorSupported, pkgs]) => {
 			const pkgMap = new Map<string, PackageInfo>();
+
 			if (!pkgs) {
 				return pkgMap;
 			}
@@ -233,12 +261,14 @@ export function getImportablePackages(
 
 				if (!vendorSupported || !currentWorkspace) {
 					pkgMap.set(pkgPath, info);
+
 					return;
 				}
 
 				if (!foundPkgRootDir) {
 					// try to guess package root dir
 					const vendorIndex = pkgPath.indexOf("/vendor/");
+
 					if (vendorIndex !== -1) {
 						foundPkgRootDir = path.join(
 							currentWorkspace,
@@ -255,6 +285,7 @@ export function getImportablePackages(
 					currentWorkspace,
 					pkgPath,
 				);
+
 				if (!relativePkgPath) {
 					return;
 				}
@@ -264,10 +295,12 @@ export function getImportablePackages(
 					currentWorkspace,
 					relativePkgPath,
 				);
+
 				if (allowToImport) {
 					pkgMap.set(relativePkgPath, info);
 				}
 			});
+
 			return pkgMap;
 		},
 	);
@@ -283,9 +316,12 @@ function getRelativePackagePath(
 	pkgPath: string,
 ): string {
 	let magicVendorString = "/vendor/";
+
 	let vendorIndex = pkgPath.indexOf(magicVendorString);
+
 	if (vendorIndex === -1) {
 		magicVendorString = "vendor/";
+
 		if (pkgPath.startsWith(magicVendorString)) {
 			vendorIndex = 0;
 		}
@@ -298,9 +334,11 @@ function getRelativePackagePath(
 			currentWorkspace,
 			pkgPath.substr(0, vendorIndex),
 		);
+
 		const relativePathForVendorPkg = pkgPath.substring(
 			vendorIndex + magicVendorString.length,
 		);
+
 		const subVendor = relativePathForVendorPkg.indexOf("/vendor/") !== -1;
 
 		if (
@@ -324,10 +362,12 @@ export function getNonVendorPackages(
 	currentFolderPath: string,
 ): Promise<Map<string, string>> {
 	const goRuntimePath = getBinPath("go");
+
 	if (!goRuntimePath) {
 		console.warn(
 			`Failed to run "go list" to find packages as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
 		);
+
 		return;
 	}
 	return new Promise<Map<string, string>>((resolve, reject) => {
@@ -341,6 +381,7 @@ export function getNonVendorPackages(
 			],
 			{ cwd: currentFolderPath, env: getToolsEnvVars() },
 		);
+
 		const chunks: any[] = [];
 		childProcess.stdout.on("data", (stdout) => {
 			chunks.push(stdout);
@@ -348,17 +389,21 @@ export function getNonVendorPackages(
 
 		childProcess.on("close", async (status) => {
 			const lines = chunks.join("").toString().split("\n");
+
 			const result = new Map<string, string>();
 
 			const version = await getGoVersion();
+
 			const vendorAlreadyExcluded = version.gt("1.8");
 
 			lines.forEach((line) => {
 				const matches = line.match(pkgToFolderMappingRegex);
+
 				if (!matches || matches.length !== 3) {
 					return;
 				}
 				const [_, pkgPath, folderPath] = matches;
+
 				if (
 					!pkgPath ||
 					(!vendorAlreadyExcluded && pkgPath.includes("/vendor/"))
@@ -388,11 +433,13 @@ function isAllowToImportPackage(
 	}
 
 	const internalPkgFound = pkgPath.match(/\/internal\/|\/internal$/);
+
 	if (internalPkgFound) {
 		const rootProjectForInternalPkg = path.join(
 			currentWorkspace,
 			pkgPath.substr(0, internalPkgFound.index),
 		);
+
 		return (
 			toDirPath.startsWith(rootProjectForInternalPkg + path.sep) ||
 			toDirPath === rootProjectForInternalPkg

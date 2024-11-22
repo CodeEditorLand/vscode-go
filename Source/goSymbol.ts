@@ -52,10 +52,12 @@ export class GoWorkspaceSymbolProvider
 			}
 			for (const decl of decls) {
 				let kind: vscode.SymbolKind;
+
 				if (decl.kind !== "") {
 					kind = this.goKindToCodeKind[decl.kind];
 				}
 				const pos = new vscode.Position(decl.line, decl.character);
+
 				const symbolInfo = new vscode.SymbolInformation(
 					decl.name,
 					kind,
@@ -66,16 +68,19 @@ export class GoWorkspaceSymbolProvider
 				symbols.push(symbolInfo);
 			}
 		};
+
 		const root = getWorkspaceFolderPath(
 			vscode.window.activeTextEditor &&
 				vscode.window.activeTextEditor.document.uri,
 		);
+
 		const goConfig = getGoConfig();
 
 		if (!root && !goConfig.gotoSymbol.includeGoroot) {
 			vscode.window.showInformationMessage(
 				"No workspace is open to find symbols.",
 			);
+
 			return;
 		}
 
@@ -83,6 +88,7 @@ export class GoWorkspaceSymbolProvider
 			(results) => {
 				const symbols: vscode.SymbolInformation[] = [];
 				convertToCodeSymbols(results, symbols);
+
 				return symbols;
 			},
 		);
@@ -100,11 +106,13 @@ export function getWorkspaceSymbols(
 		goConfig = getGoConfig();
 	}
 	const gotoSymbolConfig = goConfig["gotoSymbol"];
+
 	const calls: Promise<GoSymbolDeclaration[]>[] = [];
 
 	const ignoreFolders: string[] = gotoSymbolConfig
 		? gotoSymbolConfig["ignoreFolders"]
 		: [];
+
 	const baseArgs =
 		ignoreFolderFeatureOn && ignoreFolders && ignoreFolders.length > 0
 			? ["-ignore", ignoreFolders.join(",")]
@@ -114,6 +122,7 @@ export function getWorkspaceSymbols(
 
 	if (gotoSymbolConfig.includeGoroot) {
 		const goRoot = process.env["GOROOT"];
+
 		const gorootCall = callGoSymbols([...baseArgs, goRoot, query], token);
 		calls.push(gorootCall);
 	}
@@ -128,6 +137,7 @@ export function getWorkspaceSymbols(
 				err.message.startsWith("flag provided but not defined: -ignore")
 			) {
 				promptForUpdatingTool("go-symbols");
+
 				return getWorkspaceSymbols(
 					workspacePath,
 					query,
@@ -144,7 +154,9 @@ function callGoSymbols(
 	token: vscode.CancellationToken,
 ): Promise<GoSymbolDeclaration[]> {
 	const gosyms = getBinPath("go-symbols");
+
 	const env = getToolsEnvVars();
+
 	let p: cp.ChildProcess;
 
 	if (token) {
@@ -167,7 +179,9 @@ function callGoSymbols(
 					return reject(err);
 				}
 				const result = stdout.toString();
+
 				const decls = <GoSymbolDeclaration[]>JSON.parse(result);
+
 				return resolve(decls);
 			},
 		);

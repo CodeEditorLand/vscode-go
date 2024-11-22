@@ -12,6 +12,7 @@ import { getGoConfig, GoVersion } from "./util";
 
 export interface Tool {
 	name: string;
+
 	importPath: string;
 	isImportant: boolean;
 	description: string;
@@ -36,6 +37,7 @@ export function getImportPathWithVersion(
 	goVersion: GoVersion,
 ): string {
 	const importPath = getImportPath(tool, goVersion);
+
 	if (version) {
 		return importPath + "@v" + version;
 	}
@@ -52,6 +54,7 @@ export function disableModulesForWildcard(
 	goVersion: GoVersion,
 ): boolean {
 	const importPath = getImportPath(tool, goVersion);
+
 	const isWildcard = importPath.endsWith("...");
 
 	// Only Go >= 1.13 supports installing wildcards in module mode.
@@ -82,8 +85,10 @@ export function isGocode(tool: Tool): boolean {
 
 export function getConfiguredTools(goVersion: GoVersion): Tool[] {
 	const tools: Tool[] = [];
+
 	function maybeAddTool(name: string) {
 		const tool = allToolsInformation[name];
+
 		if (tool) {
 			tools.push(tool);
 		}
@@ -125,9 +130,12 @@ export function getConfiguredTools(goVersion: GoVersion): Tool[] {
 	switch (goConfig["docsTool"]) {
 		case "godoc":
 			maybeAddTool("godef");
+
 			break;
+
 		default:
 			maybeAddTool(goConfig["docsTool"]);
+
 			break;
 	}
 

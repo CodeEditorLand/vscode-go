@@ -17,6 +17,7 @@ export let diagnosticsStatusBarItem = vscode.window.createStatusBarItem(
 );
 
 let statusBarEntry: vscode.StatusBarItem;
+
 const statusBarItemModule = vscode.window.createStatusBarItem(
 	vscode.StatusBarAlignment.Left,
 );

@@ -37,14 +37,17 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 		const codeLensConfig = getGoConfig(document.uri).get<{
 			[key: string]: any;
 		}>("enableCodeLens");
+
 		const codelensEnabled = codeLensConfig
 			? codeLensConfig["references"]
 			: false;
+
 		if (!codelensEnabled) {
 			return Promise.resolve([]);
 		}
 
 		const goGuru = getBinPath("guru");
+
 		if (!isAbsolute(goGuru)) {
 			return Promise.resolve([]);
 		}
@@ -58,6 +61,7 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 					const funcDecl = document
 						.lineAt(position.line)
 						.text.substr(position.character);
+
 					const match = methodRegex.exec(funcDecl);
 					position = position.translate(
 						0,
@@ -85,7 +89,9 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 		const options = {
 			includeDeclaration: false,
 		};
+
 		const referenceProvider = new GoReferenceProvider();
+
 		return referenceProvider
 			.provideReferences(
 				codeLens.document,
@@ -107,6 +113,7 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 							references,
 						],
 					};
+
 					return codeLens;
 				},
 				(err) => {
@@ -115,6 +122,7 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 						title: "Error finding references",
 						command: "",
 					};
+
 					return codeLens;
 				},
 			);
@@ -125,11 +133,14 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 		token: CancellationToken,
 	): Promise<vscode.DocumentSymbol[]> {
 		const symbolProvider = new GoDocumentSymbolProvider();
+
 		const isTestFile = document.fileName.endsWith("_test.go");
+
 		const symbols = await symbolProvider.provideDocumentSymbols(
 			document,
 			token,
 		);
+
 		return symbols[0].children.filter((symbol) => {
 			if (symbol.kind === vscode.SymbolKind.Interface) {
 				return true;

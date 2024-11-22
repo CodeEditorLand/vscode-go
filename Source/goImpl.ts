@@ -19,11 +19,14 @@ const inputRegex = /^(\w+\ \*?\w+\ )?([\w./]+)$/;
 
 export function implCursor() {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showErrorMessage("No active editor found.");
+
 		return;
 	}
 	const cursor = editor.selection;
+
 	return vscode.window
 		.showInputBox({
 			placeHolder: "f *File io.Closer",
@@ -34,10 +37,12 @@ export function implCursor() {
 				return;
 			}
 			const matches = implInput.match(inputRegex);
+
 			if (!matches) {
 				vscode.window.showInformationMessage(
 					`Not parsable input: ${implInput}`,
 				);
+
 				return;
 			}
 
@@ -55,6 +60,7 @@ function runGoImpl(
 	editor: vscode.TextEditor,
 ) {
 	const goimpl = getBinPath("impl");
+
 	const p = cp.execFile(
 		goimpl,
 		args,
@@ -62,6 +68,7 @@ function runGoImpl(
 		(err, stdout, stderr) => {
 			if (err && (<any>err).code === "ENOENT") {
 				promptForMissingTool("impl");
+
 				return;
 			}
 
@@ -69,6 +76,7 @@ function runGoImpl(
 				vscode.window.showInformationMessage(
 					`Cannot stub interface: ${stderr}`,
 				);
+
 				return;
 			}
 
@@ -77,6 +85,7 @@ function runGoImpl(
 			});
 		},
 	);
+
 	if (p.pid) {
 		p.stdin.end();
 	}

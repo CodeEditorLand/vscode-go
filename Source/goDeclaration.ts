@@ -31,6 +31,7 @@ export interface GoDefinitionInformation {
 	file: string;
 	line: number;
 	column: number;
+
 	doc: string;
 	declarationlines: string[];
 	name: string;
@@ -48,8 +49,10 @@ interface GoDefinitionInput {
 
 interface GoGetDocOuput {
 	name: string;
+
 	import: string;
 	decl: string;
+
 	doc: string;
 	pos: string;
 }
@@ -67,6 +70,7 @@ export function definitionLocation(
 	token: vscode.CancellationToken,
 ): Promise<GoDefinitionInformation> {
 	const adjustedPos = adjustWordPosition(document, position);
+
 	if (!adjustedPos[0]) {
 		return Promise.resolve(null);
 	}
@@ -77,6 +81,7 @@ export function definitionLocation(
 		goConfig = getGoConfig(document.uri);
 	}
 	const toolForDocs = goConfig["docsTool"] || "godoc";
+
 	return getModFolderPath(document.uri).then((modFolderPath) => {
 		const input: GoDefinitionInput = {
 			document,
@@ -90,6 +95,7 @@ export function definitionLocation(
 					: getWorkspaceFolderPath(document.uri) ||
 						path.dirname(document.fileName),
 		};
+
 		if (toolForDocs === "godoc") {
 			return definitionLocation_godef(input, token);
 		} else if (toolForDocs === "guru") {
@@ -104,8 +110,11 @@ export function adjustWordPosition(
 	position: vscode.Position,
 ): [boolean, string, vscode.Position] {
 	const wordRange = document.getWordRangeAtPosition(position);
+
 	const lineText = document.lineAt(position.line).text;
+
 	const word = wordRange ? document.getText(wordRange) : "";
+
 	if (
 		!wordRange ||
 		lineText.startsWith("//") ||
@@ -129,13 +138,18 @@ function definitionLocation_godef(
 	useReceivers: boolean = true,
 ): Promise<GoDefinitionInformation> {
 	const godefTool = "godef";
+
 	const godefPath = getBinPath(godefTool);
+
 	if (!path.isAbsolute(godefPath)) {
 		return Promise.reject(missingToolMsg + godefTool);
 	}
 	const offset = byteOffsetAt(input.document, input.position);
+
 	const env = getToolsEnvVars();
+
 	let p: cp.ChildProcess;
+
 	if (token) {
 		token.onCancellationRequested(() => killTree(p.pid));
 	}
@@ -173,6 +187,7 @@ function definitionLocation_godef(
 								"godef",
 								`To get the Go to Definition feature when using Go modules, please update your version of the "godef" tool.`,
 							);
+
 							return reject(stderr);
 						}
 						if (
@@ -182,6 +197,7 @@ function definitionLocation_godef(
 						) {
 							promptForUpdatingTool("godef");
 							p = null;
+
 							return definitionLocation_godef(
 								input,
 								token,
@@ -191,15 +207,20 @@ function definitionLocation_godef(
 						return reject(err.message || stderr);
 					}
 					const result = stdout.toString();
+
 					const lines = result.split("\n");
+
 					let match = /(.*):(\d+):(\d+)/.exec(lines[0]);
+
 					if (!match) {
 						// TODO: Gotodef on pkg name:
 						// /usr/local/go/src/html/template\n
 						return resolve(null);
 					}
 					const [_, file, line, col] = match;
+
 					const pkgPath = path.dirname(file);
+
 					const definitionInformation: GoDefinitionInformation = {
 						file,
 						line: +line - 1,
@@ -209,6 +230,7 @@ function definitionLocation_godef(
 						doc: null,
 						name: null,
 					};
+
 					if (
 						!input.includeDocs ||
 						godefImportDefinitionRegex.test(
@@ -240,6 +262,7 @@ function definitionLocation_godef(
 				}
 			},
 		);
+
 		if (p.pid) {
 			p.stdin.end(input.document.getText());
 		}
@@ -252,12 +275,16 @@ function definitionLocation_gogetdoc(
 	useTags: boolean,
 ): Promise<GoDefinitionInformation> {
 	const gogetdoc = getBinPath("gogetdoc");
+
 	if (!path.isAbsolute(gogetdoc)) {
 		return Promise.reject(missingToolMsg + "gogetdoc");
 	}
 	const offset = byteOffsetAt(input.document, input.position);
+
 	const env = getToolsEnvVars();
+
 	let p: cp.ChildProcess;
+
 	if (token) {
 		token.onCancellationRequested(() => killTree(p.pid));
 	}
@@ -270,7 +297,9 @@ function definitionLocation_gogetdoc(
 			"-pos",
 			input.document.fileName + ":#" + offset.toString(),
 		];
+
 		const buildTags = getGoConfig(input.document.uri)["buildTags"];
+
 		const gogetdocFlags =
 			buildTags && useTags
 				? [...gogetdocFlagsWithoutTags, "-tags", buildTags]
@@ -291,6 +320,7 @@ function definitionLocation_gogetdoc(
 						)
 					) {
 						p = null;
+
 						return definitionLocation_gogetdoc(
 							input,
 							token,
@@ -309,6 +339,7 @@ function definitionLocation_gogetdoc(
 								"gogetdoc",
 								`To get the Go to Definition feature when using Go modules, please update your version of the "gogetdoc" tool.`,
 							);
+
 							return resolve(null);
 						}
 						return reject(err.message || stderr);
@@ -316,7 +347,9 @@ function definitionLocation_gogetdoc(
 					const goGetDocOutput = <GoGetDocOuput>(
 						JSON.parse(stdout.toString())
 					);
+
 					const match = /(.*):(\d+):(\d+)/.exec(goGetDocOutput.pos);
+
 					const definitionInfo: GoDefinitionInformation = {
 						file: null,
 						line: 0,
@@ -326,6 +359,7 @@ function definitionLocation_gogetdoc(
 						doc: goGetDocOutput.doc,
 						name: goGetDocOutput.name,
 					};
+
 					if (!match) {
 						return resolve(definitionInfo);
 					}
@@ -333,12 +367,14 @@ function definitionLocation_gogetdoc(
 					definitionInfo.file = match[1];
 					definitionInfo.line = +match[2] - 1;
 					definitionInfo.column = +match[3] - 1;
+
 					return resolve(definitionInfo);
 				} catch (e) {
 					reject(e);
 				}
 			},
 		);
+
 		if (p.pid) {
 			p.stdin.end(getFileArchive(input.document));
 		}
@@ -350,12 +386,16 @@ function definitionLocation_guru(
 	token: vscode.CancellationToken,
 ): Promise<GoDefinitionInformation> {
 	const guru = getBinPath("guru");
+
 	if (!path.isAbsolute(guru)) {
 		return Promise.reject(missingToolMsg + "guru");
 	}
 	const offset = byteOffsetAt(input.document, input.position);
+
 	const env = getToolsEnvVars();
+
 	let p: cp.ChildProcess;
+
 	if (token) {
 		token.onCancellationRequested(() => killTree(p.pid));
 	}
@@ -380,7 +420,9 @@ function definitionLocation_guru(
 					const guruOutput = <GuruDefinitionOuput>(
 						JSON.parse(stdout.toString())
 					);
+
 					const match = /(.*):(\d+):(\d+)/.exec(guruOutput.objpos);
+
 					const definitionInfo: GoDefinitionInformation = {
 						file: null,
 						line: 0,
@@ -390,6 +432,7 @@ function definitionLocation_guru(
 						doc: null,
 						name: null,
 					};
+
 					if (!match) {
 						return resolve(definitionInfo);
 					}
@@ -397,12 +440,14 @@ function definitionLocation_guru(
 					definitionInfo.file = match[1];
 					definitionInfo.line = +match[2] - 1;
 					definitionInfo.column = +match[3] - 1;
+
 					return resolve(definitionInfo);
 				} catch (e) {
 					reject(e);
 				}
 			},
 		);
+
 		if (p.pid) {
 			p.stdin.end(getFileArchive(input.document));
 		}
@@ -444,14 +489,17 @@ export class GoDefinitionProvider implements vscode.DefinitionProvider {
 					return null;
 				}
 				const definitionResource = vscode.Uri.file(definitionInfo.file);
+
 				const pos = new vscode.Position(
 					definitionInfo.line,
 					definitionInfo.column,
 				);
+
 				return new vscode.Location(definitionResource, pos);
 			},
 			(err) => {
 				const miss = parseMissingError(err);
+
 				if (miss[0]) {
 					promptForMissingTool(miss[1]);
 				} else if (err) {

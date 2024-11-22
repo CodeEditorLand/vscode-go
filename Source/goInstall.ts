@@ -20,29 +20,36 @@ import vscode = require("vscode");
 
 export async function installCurrentPackage(): Promise<void> {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showInformationMessage(
 			"No editor is active, cannot find current package to install",
 		);
+
 		return;
 	}
 	if (editor.document.languageId !== "go") {
 		vscode.window.showInformationMessage(
 			"File in the active editor is not a Go file, cannot find current package to install",
 		);
+
 		return;
 	}
 
 	const goRuntimePath = getBinPath("go");
+
 	if (!goRuntimePath) {
 		vscode.window.showErrorMessage(
 			`Failed to run "go install" to install the package as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
 		);
+
 		return;
 	}
 
 	const env = Object.assign({}, getToolsEnvVars());
+
 	const cwd = path.dirname(editor.document.uri.fsPath);
+
 	const isMod = await isModSupported(editor.document.uri);
 
 	// Skip installing if cwd is in the module cache
@@ -51,7 +58,9 @@ export async function installCurrentPackage(): Promise<void> {
 	}
 
 	const goConfig = getGoConfig();
+
 	const buildFlags = goConfig["buildFlags"] || [];
+
 	const args = ["install", ...buildFlags];
 
 	if (goConfig["buildTags"] && buildFlags.indexOf("-tags") === -1) {
@@ -63,6 +72,7 @@ export async function installCurrentPackage(): Promise<void> {
 		getCurrentGoPath(),
 		cwd,
 	);
+
 	const importPath =
 		currentGoWorkspace && !isMod
 			? cwd.substr(currentGoWorkspace.length + 1)

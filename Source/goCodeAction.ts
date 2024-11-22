@@ -20,6 +20,7 @@ export class GoCodeActionProvider implements vscode.CodeActionProvider {
 			// When a name is not found but could refer to a package, offer to add import
 			if (diag.message.indexOf("undefined: ") === 0) {
 				const [_, name] = /^undefined: (\S*)/.exec(diag.message);
+
 				return listPackages().then((packages) => {
 					const commands = packages
 						.filter(
@@ -34,6 +35,7 @@ export class GoCodeActionProvider implements vscode.CodeActionProvider {
 								],
 							};
 						});
+
 					return commands;
 				});
 			}
@@ -42,12 +44,14 @@ export class GoCodeActionProvider implements vscode.CodeActionProvider {
 
 		return Promise.all(promises).then((arrs) => {
 			const results: { [key: string]: any } = {};
+
 			for (const segment of arrs) {
 				for (const item of segment) {
 					results[item.title] = item;
 				}
 			}
 			const ret = [];
+
 			for (const title of Object.keys(results).sort()) {
 				ret.push(results[title]);
 			}

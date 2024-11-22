@@ -28,6 +28,7 @@ import util = require("util");
 import vscode = require("vscode");
 
 const outputChannel = vscode.window.createOutputChannel("Go Tests");
+
 const statusBarItem = vscode.window.createStatusBarItem(
 	vscode.StatusBarAlignment.Left,
 );
@@ -40,7 +41,9 @@ statusBarItem.text = "$(x) Cancel Running Tests";
 const runningTestProcesses: cp.ChildProcess[] = [];
 
 const testFuncRegex = /^Test.*|^Example.*/;
+
 const testMethodRegex = /^\(([^)]+)\)\.(Test.*)$/;
+
 const benchmarkRegex = /^Benchmark.*/;
 
 /**
@@ -87,12 +90,16 @@ export interface TestConfig {
 
 export function getTestEnvVars(config: vscode.WorkspaceConfiguration): any {
 	const envVars = getToolsEnvVars();
+
 	const testEnvConfig = config["testEnvVars"] || {};
 
 	let fileEnv: { [key: string]: any } = {};
+
 	let testEnvFile = config["testEnvFile"];
+
 	if (testEnvFile) {
 		testEnvFile = resolvePath(testEnvFile);
+
 		try {
 			fileEnv = parseEnvFile(testEnvFile);
 		} catch (e) {
@@ -147,6 +154,7 @@ export function getTestFunctions(
 	token: vscode.CancellationToken,
 ): Thenable<vscode.DocumentSymbol[]> {
 	const documentSymbolProvider = new GoDocumentSymbolProvider(true);
+
 	return documentSymbolProvider
 		.provideDocumentSymbols(doc, token)
 		.then((symbols) => symbols[0].children)
@@ -156,6 +164,7 @@ export function getTestFunctions(
 					sym.kind === vscode.SymbolKind.Namespace &&
 					sym.name === '"github.com/stretchr/testify/suite"',
 			);
+
 			return symbols.filter(
 				(sym) =>
 					sym.kind === vscode.SymbolKind.Function &&
@@ -173,6 +182,7 @@ export function getTestFunctions(
  */
 export function extractInstanceTestName(symbolName: string): string {
 	const match = symbolName.match(testMethodRegex);
+
 	if (!match || match.length !== 3) {
 		return null;
 	}
@@ -194,13 +204,17 @@ export function getTestFunctionDebugArgs(
 		return ["-test.bench", "^" + testFunctionName + "$", "-test.run", "a^"];
 	}
 	const instanceMethod = extractInstanceTestName(testFunctionName);
+
 	if (instanceMethod) {
 		const testFns = findAllTestSuiteRuns(document, testFunctions);
+
 		const testSuiteRuns = [
 			"-test.run",
 			`^${testFns.map((t) => t.name).join("|")}$`,
 		];
+
 		const testSuiteTests = ["-testify.m", `^${instanceMethod}$`];
+
 		return [...testSuiteRuns, ...testSuiteTests];
 	} else {
 		return ["-test.run", `^${testFunctionName}$`];
@@ -235,6 +249,7 @@ export function getBenchmarkFunctions(
 	token: vscode.CancellationToken,
 ): Thenable<vscode.DocumentSymbol[]> {
 	const documentSymbolProvider = new GoDocumentSymbolProvider();
+
 	return documentSymbolProvider
 		.provideDocumentSymbols(doc, token)
 		.then((symbols) => symbols[0].children)
@@ -254,6 +269,7 @@ export function getBenchmarkFunctions(
  */
 export async function goTest(testconfig: TestConfig): Promise<boolean> {
 	const tmpCoverPath = getTempFilePath("go-code-cover");
+
 	const testResult = await new Promise<boolean>(async (resolve, reject) => {
 		// We do not want to clear it if tests are already running, as that could
 		// lose valuable output.
@@ -266,7 +282,9 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 		}
 
 		const testTags: string = getTestTags(testconfig.goConfig);
+
 		const args: Array<string> = ["test"];
+
 		const testType: string = testconfig.isBenchmark
 			? "Benchmarks"
 			: "Tests";
@@ -275,6 +293,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 			args.push("-benchmem", "-run=^$");
 		} else {
 			args.push("-timeout", testconfig.goConfig["testTimeout"]);
+
 			if (testconfig.applyCodeCoverage) {
 				args.push("-coverprofile=" + tmpCoverPath);
 			}
@@ -284,12 +303,14 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 		}
 
 		const testEnvVars = getTestEnvVars(testconfig.goConfig);
+
 		const goRuntimePath = getBinPath("go");
 
 		if (!goRuntimePath) {
 			vscode.window.showErrorMessage(
 				`Failed to run "go test" as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
 			);
+
 			return Promise.resolve();
 		}
 
@@ -299,8 +320,11 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 					getCurrentGoPath(),
 					testconfig.dir,
 				);
+
 		let targets = targetArgs(testconfig);
+
 		let getCurrentPackagePromise = Promise.resolve("");
+
 		if (testconfig.isMod) {
 			getCurrentPackagePromise = getCurrentPackage(testconfig.dir);
 		} else if (currentGoWorkspace) {
@@ -310,6 +334,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 		}
 		let pkgMapPromise: Promise<Map<string, string> | null> =
 			Promise.resolve(null);
+
 		if (testconfig.includeSubDirectories) {
 			if (testconfig.isMod) {
 				targets = ["./..."];
@@ -319,11 +344,13 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 				pkgMapPromise = getGoVersion().then((goVersion) => {
 					if (goVersion.gt("1.8")) {
 						targets = ["./..."];
+
 						return null; // We dont need mapping, as we can derive the absolute paths from package path
 					}
 					return getNonVendorPackages(testconfig.dir).then(
 						(pkgMap) => {
 							targets = Array.from(pkgMap.keys());
+
 							return pkgMap; // We need the individual package paths to pass to `go test`
 						},
 					);
@@ -342,6 +369,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 				}
 
 				const outTargets = args.slice(0);
+
 				if (targets.length > 4) {
 					outTargets.push("<long arguments omitted>");
 				} else {
@@ -367,24 +395,32 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 					env: testEnvVars,
 					cwd: testconfig.dir,
 				});
+
 				const outBuf = new LineBuffer();
+
 				const errBuf = new LineBuffer();
 
 				// 1=ok/FAIL, 2=package, 3=time/(cached)
 				const packageResultLineRE =
 					/^(ok|FAIL)[ \t]+(.+?)[ \t]+([0-9\.]+s|\(cached\))/;
+
 				const lineWithErrorRE = /^(\t|\s\s\s\s)\S/;
+
 				const testResultLines: string[] = [];
 
 				const processTestResultLine = (line: string) => {
 					testResultLines.push(line);
+
 					const result = line.match(packageResultLineRE);
+
 					if (
 						result &&
 						(pkgMap.has(result[2]) || currentGoWorkspace)
 					) {
 						const hasTestFailed = line.startsWith("FAIL");
+
 						const packageNameArr = result[2].split("/");
+
 						const baseDir =
 							pkgMap.get(result[2]) ||
 							path.join(currentGoWorkspace, ...packageNameArr);
@@ -450,6 +486,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 					errBuf.done();
 
 					const index = runningTestProcesses.indexOf(tp, 0);
+
 					if (index > -1) {
 						runningTestProcesses.splice(index, 1);
 					}
@@ -470,6 +507,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 			},
 		);
 	});
+
 	if (testconfig.applyCodeCoverage) {
 		await applyCodeCoverageToAllEditors(tmpCoverPath, testconfig.dir);
 	}
@@ -499,8 +537,10 @@ export function cancelRunningTests(): Thenable<boolean> {
 
 function expandFilePathInOutput(output: string, cwd: string): string {
 	const lines = output.split("\n");
+
 	for (let i = 0; i < lines.length; i++) {
 		const matches = lines[i].match(/^\s*(.+.go):(\d+):/);
+
 		if (matches && matches[1] && !path.isAbsolute(matches[1])) {
 			lines[i] = lines[i].replace(matches[1], path.join(cwd, matches[1]));
 		}
@@ -524,9 +564,11 @@ function targetArgs(testconfig: TestConfig): Array<string> {
 			];
 		} else {
 			let testFunctions = testconfig.functions;
+
 			let testifyMethods = testFunctions.filter((fn) =>
 				testMethodRegex.test(fn),
 			);
+
 			if (testifyMethods.length > 0) {
 				// filter out testify methods
 				testFunctions = testFunctions.filter(
@@ -562,6 +604,7 @@ function targetArgs(testconfig: TestConfig): Array<string> {
 
 function removeRunFlag(flags: string[]): void {
 	const index: number = flags.indexOf("-run");
+
 	if (index !== -1) {
 		flags.splice(index, 2);
 	}

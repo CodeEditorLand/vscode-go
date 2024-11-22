@@ -21,6 +21,7 @@ export class GoRefactorProvider implements vscode.CodeActionProvider {
 			"Extract to function in package scope",
 			vscode.CodeActionKind.RefactorExtract,
 		);
+
 		const extractVar = new vscode.CodeAction(
 			"Extract to variable in local scope",
 			vscode.CodeActionKind.RefactorExtract,

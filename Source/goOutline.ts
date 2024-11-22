@@ -65,6 +65,7 @@ export async function documentSymbols(
 	token: vscode.CancellationToken,
 ): Promise<vscode.DocumentSymbol[]> {
 	const decls = await runGoOutline(options, token);
+
 	return convertToCodeSymbols(
 		options.document,
 		decls,
@@ -81,7 +82,9 @@ export function runGoOutline(
 ): Promise<GoOutlineDeclaration[]> {
 	return new Promise<GoOutlineDeclaration[]>((resolve, reject) => {
 		const gooutline = getBinPath("go-outline");
+
 		const gooutlineFlags = ["-f", options.fileName];
+
 		if (options.importsOption === GoOutlineImportsOptions.Only) {
 			gooutlineFlags.push("-imports-only");
 		}
@@ -90,6 +93,7 @@ export function runGoOutline(
 		}
 
 		let p: cp.ChildProcess;
+
 		if (token) {
 			token.onCancellationRequested(() => killProcess(p));
 		}
@@ -109,6 +113,7 @@ export function runGoOutline(
 						stderr.startsWith("flag provided but not defined: ")
 					) {
 						promptForUpdatingTool("go-outline");
+
 						if (
 							stderr.startsWith(
 								"flag provided but not defined: -imports-only",
@@ -125,6 +130,7 @@ export function runGoOutline(
 							options.document = null;
 						}
 						p = null;
+
 						return runGoOutline(options, token).then((results) => {
 							return resolve(results);
 						});
@@ -133,13 +139,16 @@ export function runGoOutline(
 						return resolve(null);
 					}
 					const result = stdout.toString();
+
 					const decls = <GoOutlineDeclaration[]>JSON.parse(result);
+
 					return resolve(decls);
 				} catch (e) {
 					reject(e);
 				}
 			},
 		);
+
 		if (options.document && p.pid) {
 			p.stdin.end(getFileArchive(options.document));
 		}
@@ -177,10 +186,15 @@ function convertToCodeSymbols(
 			: decl.label;
 
 		const start = byteOffsetToDocumentOffset(decl.start - 1);
+
 		const end = byteOffsetToDocumentOffset(decl.end - 1);
+
 		const startPosition = document.positionAt(start);
+
 		const endPosition = document.positionAt(end);
+
 		const symbolRange = new vscode.Range(startPosition, endPosition);
+
 		const selectionRange =
 			startPosition.line === endPosition.line
 				? symbolRange
@@ -191,9 +205,11 @@ function convertToCodeSymbols(
 
 		if (decl.type === "type") {
 			const line = document.lineAt(document.positionAt(start));
+
 			const regexStruct = new RegExp(
 				`^\\s*type\\s+${decl.label}\\s+struct\\b`,
 			);
+
 			const regexInterface = new RegExp(
 				`^\\s*type\\s+${decl.label}\\s+interface\\b`,
 			);
@@ -213,6 +229,7 @@ function convertToCodeSymbols(
 		);
 
 		symbols.push(symbolInfo);
+
 		if (decl.children) {
 			symbolInfo.children = convertToCodeSymbols(
 				document,
@@ -222,6 +239,7 @@ function convertToCodeSymbols(
 			);
 		}
 	});
+
 	return symbols;
 }
 
@@ -245,6 +263,7 @@ export class GoDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 				? GoOutlineImportsOptions.Include
 				: GoOutlineImportsOptions.Exclude,
 		};
+
 		return documentSymbols(options, token);
 	}
 }

@@ -29,22 +29,26 @@ import vscode = require("vscode");
  */
 export function buildCode(buildWorkspace?: boolean) {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!buildWorkspace) {
 		if (!editor) {
 			vscode.window.showInformationMessage(
 				"No editor is active, cannot find current package to build",
 			);
+
 			return;
 		}
 		if (editor.document.languageId !== "go") {
 			vscode.window.showInformationMessage(
 				"File in the active editor is not a Go file, cannot find current package to build",
 			);
+
 			return;
 		}
 	}
 
 	const documentUri = editor ? editor.document.uri : null;
+
 	const goConfig = getGoConfig(documentUri);
 
 	outputChannel.clear(); // Ensures stale output from build on save is cleared
@@ -83,7 +87,9 @@ export async function goBuild(
 	buildWorkspace?: boolean,
 ): Promise<ICheckResult[]> {
 	epoch++;
+
 	const closureEpoch = epoch;
+
 	if (tokenSource) {
 		if (running) {
 			tokenSource.cancel();
@@ -91,6 +97,7 @@ export async function goBuild(
 		tokenSource.dispose();
 	}
 	tokenSource = new vscode.CancellationTokenSource();
+
 	const updateRunning = () => {
 		if (closureEpoch === epoch) {
 			running = false;
@@ -98,10 +105,12 @@ export async function goBuild(
 	};
 
 	const currentWorkspace = getWorkspaceFolderPath(fileUri);
+
 	const cwd =
 		buildWorkspace && currentWorkspace
 			? currentWorkspace
 			: path.dirname(fileUri.fsPath);
+
 	if (!path.isAbsolute(cwd)) {
 		return Promise.resolve([]);
 	}
@@ -112,13 +121,17 @@ export async function goBuild(
 	}
 
 	const buildEnv = Object.assign({}, getToolsEnvVars());
+
 	const tmpPath = getTempFilePath("go-code-check");
+
 	const isTestFile = fileUri && fileUri.fsPath.endsWith("_test.go");
+
 	const buildFlags: string[] = isTestFile
 		? getTestFlags(goConfig)
 		: Array.isArray(goConfig["buildFlags"])
 			? [...goConfig["buildFlags"]]
 			: [];
+
 	const buildArgs: string[] = isTestFile ? ["test", "-c"] : ["build"];
 
 	if (goConfig["installDependenciesWhenBuilding"] === true && !isMod) {
@@ -129,6 +142,7 @@ export async function goBuild(
 		}
 	}
 	buildArgs.push(...buildFlags);
+
 	if (goConfig["buildTags"] && buildFlags.indexOf("-tags") === -1) {
 		buildArgs.push("-tags");
 		buildArgs.push(goConfig["buildTags"]);
@@ -138,8 +152,10 @@ export async function goBuild(
 		outputChannel.appendLine(
 			`Starting building the current workspace at ${currentWorkspace}`,
 		);
+
 		return getNonVendorPackages(currentWorkspace).then((pkgs) => {
 			running = true;
+
 			return runTool(
 				buildArgs.concat(Array.from(pkgs.keys())),
 				currentWorkspace,
@@ -151,6 +167,7 @@ export async function goBuild(
 				tokenSource.token,
 			).then((v) => {
 				updateRunning();
+
 				return v;
 			});
 		});
@@ -163,7 +180,9 @@ export async function goBuild(
 		getCurrentGoPath(),
 		cwd,
 	);
+
 	let importPath = ".";
+
 	if (currentGoWorkspace && !isMod) {
 		importPath = cwd.substr(currentGoWorkspace.length + 1);
 	} else {
@@ -173,6 +192,7 @@ export async function goBuild(
 	}
 
 	running = true;
+
 	return runTool(
 		buildArgs.concat("-o", tmpPath, importPath),
 		cwd,
@@ -184,10 +204,13 @@ export async function goBuild(
 		tokenSource.token,
 	).then((v) => {
 		updateRunning();
+
 		return v;
 	});
 }
 
 let epoch = 0;
+
 let tokenSource: vscode.CancellationTokenSource;
+
 let running = false;

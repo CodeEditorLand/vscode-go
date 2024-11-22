@@ -21,22 +21,26 @@ const generatedWord = "Generated ";
  */
 function checkActiveEditor(): vscode.TextEditor | undefined {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showInformationMessage(
 			"Cannot generate unit tests. No editor selected.",
 		);
+
 		return;
 	}
 	if (!editor.document.fileName.endsWith(".go")) {
 		vscode.window.showInformationMessage(
 			"Cannot generate unit tests. File in the editor is not a Go file.",
 		);
+
 		return;
 	}
 	if (editor.document.isDirty) {
 		vscode.window.showInformationMessage(
 			"File has unsaved changes. Save and try again.",
 		);
+
 		return;
 	}
 	return editor;
@@ -47,20 +51,25 @@ function checkActiveEditor(): vscode.TextEditor | undefined {
  */
 export function toggleTestFile(): void {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showInformationMessage(
 			"Cannot toggle test file. No editor selected.",
 		);
+
 		return;
 	}
 	const currentFilePath = editor.document.fileName;
+
 	if (!currentFilePath.endsWith(".go")) {
 		vscode.window.showInformationMessage(
 			"Cannot toggle test file. File in the editor is not a Go file.",
 		);
+
 		return;
 	}
 	let targetFilePath = "";
+
 	if (currentFilePath.endsWith("_test.go")) {
 		targetFilePath =
 			currentFilePath.substr(0, currentFilePath.lastIndexOf("_test.go")) +
@@ -77,6 +86,7 @@ export function toggleTestFile(): void {
 				vscode.Uri.file(targetFilePath),
 				doc.viewColumn,
 			);
+
 			return;
 		}
 	}
@@ -88,6 +98,7 @@ export function toggleTestFile(): void {
 
 export function generateTestCurrentPackage(): Promise<boolean> {
 	const editor = checkActiveEditor();
+
 	if (!editor) {
 		return;
 	}
@@ -102,6 +113,7 @@ export function generateTestCurrentPackage(): Promise<boolean> {
 
 export function generateTestCurrentFile(): Promise<boolean> {
 	const editor = checkActiveEditor();
+
 	if (!editor) {
 		return;
 	}
@@ -117,25 +129,32 @@ export function generateTestCurrentFile(): Promise<boolean> {
 
 export async function generateTestCurrentFunction(): Promise<boolean> {
 	const editor = checkActiveEditor();
+
 	if (!editor) {
 		return;
 	}
 
 	const functions = await getFunctions(editor.document);
+
 	const selection = editor.selection;
+
 	const currentFunction: vscode.DocumentSymbol = functions.find(
 		(func) => selection && func.range.contains(selection.start),
 	);
 
 	if (!currentFunction) {
 		vscode.window.showInformationMessage("No function found at cursor.");
+
 		return Promise.resolve(false);
 	}
 	let funcName = currentFunction.name;
+
 	const funcNameParts = funcName.match(/^\(\*?(.*)\)\.(.*)$/);
+
 	if (funcNameParts != null && funcNameParts.length === 3) {
 		// receiver type specified
 		const rType = funcNameParts[1].replace(/^\w/, (c) => c.toUpperCase());
+
 		const fName = funcNameParts[2].replace(/^\w/, (c) => c.toUpperCase());
 		funcName = rType + fName;
 	}
@@ -175,17 +194,21 @@ function generateTests(
 ): Promise<boolean> {
 	return new Promise<boolean>((resolve, reject) => {
 		const cmd = getBinPath("gotests");
+
 		let args = ["-w"];
+
 		const goGenerateTestsFlags: string[] =
 			goConfig["generateTestsFlags"] || [];
 
 		for (let i = 0; i < goGenerateTestsFlags.length; i++) {
 			const flag = goGenerateTestsFlags[i];
+
 			if (flag === "-w" || flag === "all") {
 				continue;
 			}
 			if (flag === "-only") {
 				i++;
+
 				continue;
 			}
 			args.push(flag);
@@ -209,15 +232,18 @@ function generateTests(
 				try {
 					if (err && (<any>err).code === "ENOENT") {
 						promptForMissingTool("gotests");
+
 						return resolve(false);
 					}
 					if (err) {
 						console.log(err);
 						outputChannel.appendLine(err.message);
+
 						return reject("Cannot generate test due to errors");
 					}
 
 					let message = stdout;
+
 					let testsGenerated = false;
 
 					// Expected stdout is of the format "Generated TestMain\nGenerated Testhello\n"
@@ -256,10 +282,12 @@ async function getFunctions(
 	doc: vscode.TextDocument,
 ): Promise<vscode.DocumentSymbol[]> {
 	const documentSymbolProvider = new GoDocumentSymbolProvider();
+
 	const symbols = await documentSymbolProvider.provideDocumentSymbols(
 		doc,
 		null,
 	);
+
 	return symbols[0].children.filter(
 		(sym) => sym.kind === vscode.SymbolKind.Function,
 	);

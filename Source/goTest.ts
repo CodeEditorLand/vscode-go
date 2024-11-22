@@ -41,14 +41,17 @@ export function testAtCursor(
 	args: any,
 ) {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showInformationMessage("No editor is active.");
+
 		return;
 	}
 	if (!editor.document.fileName.endsWith("_test.go")) {
 		vscode.window.showInformationMessage(
 			"No tests found. Current file is not a test file.",
 		);
+
 		return;
 	}
 
@@ -68,10 +71,12 @@ export function testAtCursor(
 								func.range.contains(editor.selection.start),
 							)
 							.map((el) => el.name)[0];
+
 			if (!testFunctionName) {
 				vscode.window.showInformationMessage(
 					"No test function found at cursor.",
 				);
+
 				return;
 			}
 
@@ -112,6 +117,7 @@ async function runTestAtCursor(
 	args: any,
 ) {
 	const testConfigFns = [testFunctionName];
+
 	if (cmd !== "benchmark" && extractInstanceTestName(testFunctionName)) {
 		testConfigFns.push(
 			...findAllTestSuiteRuns(editor.document, testFunctions).map(
@@ -121,6 +127,7 @@ async function runTestAtCursor(
 	}
 
 	const isMod = await isModSupported(editor.document.uri);
+
 	const testConfig: TestConfig = {
 		goConfig,
 		dir: path.dirname(editor.document.fileName),
@@ -132,6 +139,7 @@ async function runTestAtCursor(
 	};
 	// Remember this config as the last executed test.
 	lastTestConfig = testConfig;
+
 	return goTest(testConfig);
 }
 
@@ -149,24 +157,32 @@ async function debugTestAtCursor(
 		testFunctionName,
 		testFunctions,
 	);
+
 	const tags = getTestTags(goConfig);
+
 	const buildFlags = tags ? ["-tags", tags] : [];
+
 	const flagsFromConfig = getTestFlags(goConfig);
+
 	let foundArgsFlag = false;
 	flagsFromConfig.forEach((x) => {
 		if (foundArgsFlag) {
 			args.push(x);
+
 			return;
 		}
 		if (x === "-args") {
 			foundArgsFlag = true;
+
 			return;
 		}
 		buildFlags.push(x);
 	});
+
 	const workspaceFolder = vscode.workspace.getWorkspaceFolder(
 		editor.document.uri,
 	);
+
 	const debugConfig: vscode.DebugConfiguration = {
 		name: "Debug Test",
 		type: "go",
@@ -178,6 +194,7 @@ async function debugTestAtCursor(
 		args,
 		buildFlags: buildFlags.join(" "),
 	};
+
 	return await vscode.debug.startDebugging(workspaceFolder, debugConfig);
 }
 
@@ -192,12 +209,15 @@ export async function testCurrentPackage(
 	args: any,
 ) {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showInformationMessage("No editor is active.");
+
 		return;
 	}
 
 	const isMod = await isModSupported(editor.document.uri);
+
 	const testConfig: TestConfig = {
 		goConfig,
 		dir: path.dirname(editor.document.fileName),
@@ -208,6 +228,7 @@ export async function testCurrentPackage(
 	};
 	// Remember this config as the last executed test.
 	lastTestConfig = testConfig;
+
 	return goTest(testConfig);
 }
 
@@ -224,9 +245,11 @@ export function testWorkspace(
 		vscode.window.showInformationMessage(
 			"No workspace is open to run tests.",
 		);
+
 		return;
 	}
 	let workspaceUri = vscode.workspace.workspaceFolders[0].uri;
+
 	if (
 		vscode.window.activeTextEditor &&
 		vscode.workspace.getWorkspaceFolder(
@@ -267,18 +290,22 @@ export async function testCurrentFile(
 	args: string[],
 ): Promise<boolean> {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showInformationMessage("No editor is active.");
+
 		return;
 	}
 	if (!editor.document.fileName.endsWith("_test.go")) {
 		vscode.window.showInformationMessage(
 			"No tests found. Current file is not a test file.",
 		);
+
 		return;
 	}
 
 	const getFunctions = isBenchmark ? getBenchmarkFunctions : getTestFunctions;
+
 	const isMod = await isModSupported(editor.document.uri);
 
 	return editor.document
@@ -298,11 +325,13 @@ export async function testCurrentFile(
 				};
 				// Remember this config as the last executed test.
 				lastTestConfig = testConfig;
+
 				return goTest(testConfig);
 			});
 		})
 		.then(null, (err) => {
 			console.error(err);
+
 			return Promise.resolve(false);
 		});
 }
@@ -315,6 +344,7 @@ export function testPrevious() {
 		vscode.window.showInformationMessage(
 			"No test has been recently executed.",
 		);
+
 		return;
 	}
 	goTest(lastTestConfig).then(null, (err) => {

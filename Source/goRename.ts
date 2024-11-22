@@ -45,27 +45,37 @@ export class GoRenameProvider implements vscode.RenameProvider {
 	): Thenable<vscode.WorkspaceEdit> {
 		return new Promise<vscode.WorkspaceEdit>((resolve, reject) => {
 			const filename = canonicalizeGOPATHPrefix(document.fileName);
+
 			const range = document.getWordRangeAtPosition(position);
+
 			const pos = range ? range.start : position;
+
 			const offset = byteOffsetAt(document, pos);
+
 			const env = getToolsEnvVars();
+
 			const gorename = getBinPath("gorename");
+
 			const buildTags = getGoConfig(document.uri)["buildTags"];
+
 			const gorenameArgs = [
 				"-offset",
 				filename + ":#" + offset,
 				"-to",
 				newName,
 			];
+
 			if (buildTags) {
 				gorenameArgs.push("-tags", buildTags);
 			}
 			const canRenameToolUseDiff = isDiffToolAvailable();
+
 			if (canRenameToolUseDiff) {
 				gorenameArgs.push("-d");
 			}
 
 			let p: cp.ChildProcess;
+
 			if (token) {
 				token.onCancellationRequested(() => killTree(p.pid));
 			}
@@ -78,6 +88,7 @@ export class GoRenameProvider implements vscode.RenameProvider {
 					try {
 						if (err && (<any>err).code === "ENOENT") {
 							promptForMissingTool("gorename");
+
 							return reject("Could not find gorename tool.");
 						}
 						if (err) {
@@ -87,6 +98,7 @@ export class GoRenameProvider implements vscode.RenameProvider {
 							console.log(errMsg);
 							outputChannel.appendLine(errMsg);
 							outputChannel.show();
+
 							return reject();
 						}
 

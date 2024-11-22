@@ -15,12 +15,17 @@ import vscode = require("vscode");
 
 export function browsePackages() {
 	let workDir = "";
+
 	let selectedText = "";
+
 	const editor = vscode.window.activeTextEditor;
+
 	if (editor) {
 		const currentUri = editor.document.uri;
 		workDir = path.dirname(currentUri.fsPath);
+
 		const selection = editor.selection;
+
 		if (!selection.isEmpty) {
 			// get selected text
 			selectedText = editor.document.getText(selection);
@@ -46,6 +51,7 @@ function showPackageFiles(
 	workDir: string,
 ) {
 	const goRuntimePath = getBinPath("go");
+
 	if (!goRuntimePath) {
 		return vscode.window.showErrorMessage(
 			`Failed to run "go list" to fetch packages as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
@@ -84,10 +90,14 @@ function showPackageFiles(
 
 			const matches =
 				stdout && stdout.match(/(.*):\[(.*)\]:\[(.*)\]:\[(.*)\]/);
+
 			if (matches) {
 				const dir = matches[1];
+
 				let files = matches[2] ? matches[2].split(" ") : [];
+
 				const testfiles = matches[3] ? matches[3].split(" ") : [];
+
 				const xtestfiles = matches[4] ? matches[4].split(" ") : [];
 				files = files.concat(testfiles);
 				files = files.concat(xtestfiles);
@@ -116,6 +126,7 @@ function showPackageFiles(
 function showPackageList(workDir: string) {
 	return getAllPackages(workDir).then((pkgMap) => {
 		const pkgs: string[] = Array.from(pkgMap.keys());
+
 		if (pkgs.length === 0) {
 			return vscode.window.showErrorMessage(
 				"Could not find packages. Ensure `gopkgs -format {{.Name}};{{.ImportPath}}` runs successfully.",

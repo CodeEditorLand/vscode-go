@@ -24,20 +24,24 @@ import vscode = require("vscode");
  */
 export function lintCode(scope?: string) {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor && scope !== "workspace") {
 		vscode.window.showInformationMessage(
 			"No editor is active, cannot find current package to lint",
 		);
+
 		return;
 	}
 	if (editor.document.languageId !== "go" && scope !== "workspace") {
 		vscode.window.showInformationMessage(
 			"File in the active editor is not a Go file, cannot find current package to lint",
 		);
+
 		return;
 	}
 
 	const documentUri = editor ? editor.document.uri : null;
+
 	const goConfig = getGoConfig(documentUri);
 
 	outputChannel.clear(); // Ensures stale output from lint on save is cleared
@@ -72,7 +76,9 @@ export function goLint(
 	scope?: string,
 ): Promise<ICheckResult[]> {
 	epoch++;
+
 	const closureEpoch = epoch;
+
 	if (tokenSource) {
 		if (running) {
 			tokenSource.cancel();
@@ -93,8 +99,11 @@ export function goLint(
 	}
 
 	const lintTool = goConfig["lintTool"] || "golint";
+
 	const lintFlags: string[] = goConfig["lintFlags"] || [];
+
 	const lintEnv = Object.assign({}, getToolsEnvVars());
+
 	const args: string[] = [];
 
 	lintFlags.forEach((flag) => {
@@ -104,6 +113,7 @@ export function goLint(
 		}
 		if (flag.startsWith("--config=") || flag.startsWith("-config=")) {
 			let configFilePath = flag.substr(flag.indexOf("=") + 1).trim();
+
 			if (!configFilePath) {
 				return;
 			}
@@ -111,10 +121,12 @@ export function goLint(
 			args.push(
 				`${flag.substr(0, flag.indexOf("=") + 1)}${configFilePath}`,
 			);
+
 			return;
 		}
 		args.push(flag);
 	});
+
 	if (lintTool === "gometalinter") {
 		if (args.indexOf("--aggregate") === -1) {
 			args.push("--aggregate");
@@ -157,6 +169,7 @@ export function goLint(
 	}
 
 	running = true;
+
 	const lintPromise = runTool(
 		args,
 		cwd,
@@ -177,5 +190,7 @@ export function goLint(
 }
 
 let epoch = 0;
+
 let tokenSource: vscode.CancellationTokenSource;
+
 let running = false;

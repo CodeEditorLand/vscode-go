@@ -26,6 +26,7 @@ interface GoFillStructOutput {
 
 export function runFillStruct(editor: vscode.TextEditor): Promise<void> {
 	const args = getCommonArgs(editor);
+
 	if (!args) {
 		return Promise.reject("No args");
 	}
@@ -36,13 +37,16 @@ export function runFillStruct(editor: vscode.TextEditor): Promise<void> {
 function getCommonArgs(editor: vscode.TextEditor): string[] | undefined {
 	if (!editor) {
 		vscode.window.showInformationMessage("No editor is active.");
+
 		return;
 	}
 	if (!editor.document.fileName.endsWith(".go")) {
 		vscode.window.showInformationMessage("Current file is not a Go file.");
+
 		return;
 	}
 	const args = ["-modified", "-file", editor.document.fileName];
+
 	if (editor.selection.isEmpty) {
 		const offset = byteOffsetAt(editor.document, editor.selection.start);
 		args.push("-offset");
@@ -56,7 +60,9 @@ function getCommonArgs(editor: vscode.TextEditor): string[] | undefined {
 
 function getTabsCount(editor: vscode.TextEditor): number {
 	const startline = editor.selection.start.line;
+
 	const tabs = editor.document.lineAt(startline).text.match("^\t*");
+
 	return tabs ? tabs.length : 0;
 }
 
@@ -65,7 +71,9 @@ function execFillStruct(
 	args: string[],
 ): Promise<void> {
 	const fillstruct = getBinPath("fillstruct");
+
 	const input = getFileArchive(editor.document);
+
 	const tabsCount = getTabsCount(editor);
 
 	return new Promise<void>((resolve, reject) => {
@@ -77,12 +85,14 @@ function execFillStruct(
 				try {
 					if (err && (<any>err).code === "ENOENT") {
 						promptForMissingTool("fillstruct");
+
 						return reject();
 					}
 					if (err) {
 						vscode.window.showInformationMessage(
 							`Cannot fill struct: ${stderr}`,
 						);
+
 						return reject();
 					}
 
@@ -92,10 +102,12 @@ function execFillStruct(
 						vscode.window.showInformationMessage(
 							`Got empty fillstruct output`,
 						);
+
 						return reject();
 					}
 
 					const indent = "\t".repeat(tabsCount);
+
 					const offsetConverter = makeMemoizedByteOffsetConverter(
 						Buffer.from(editor.document.getText()),
 					);
@@ -107,6 +119,7 @@ function execFillStruct(
 									/\n/g,
 									"\n" + indent,
 								);
+
 								const rangeToReplace = new vscode.Range(
 									editor.document.positionAt(
 										offsetConverter(structToFill.start),
@@ -124,6 +137,7 @@ function execFillStruct(
 				}
 			},
 		);
+
 		if (p.pid) {
 			p.stdin.end(input);
 		}

@@ -29,11 +29,14 @@ export async function listPackages(
 		excludeImportedPkgs && vscode.window.activeTextEditor
 			? await getImports(vscode.window.activeTextEditor.document)
 			: [];
+
 	const pkgMap = await getImportablePackages(
 		vscode.window.activeTextEditor.document.fileName,
 		true,
 	);
+
 	const stdLibs: string[] = [];
+
 	const nonStdLibs: string[] = [];
 	pkgMap.forEach((value, key) => {
 		if (importedPkgs.some((imported) => imported === key)) {
@@ -45,6 +48,7 @@ export async function listPackages(
 			nonStdLibs.push(key);
 		}
 	});
+
 	return [...stdLibs.sort(), ...nonStdLibs.sort()];
 }
 
@@ -60,7 +64,9 @@ async function getImports(document: vscode.TextDocument): Promise<string[]> {
 		importsOption: GoOutlineImportsOptions.Only,
 		document,
 	};
+
 	const symbols = await documentSymbols(options, null);
+
 	if (!symbols || !symbols.length) {
 		return [];
 	}
@@ -68,12 +74,14 @@ async function getImports(document: vscode.TextDocument): Promise<string[]> {
 	const imports = symbols[0].children
 		.filter((x: any) => x.kind === vscode.SymbolKind.Namespace)
 		.map((x: any) => x.name.substr(1, x.name.length - 2));
+
 	return imports;
 }
 
 async function askUserForImport(): Promise<string | undefined> {
 	try {
 		const packages = await listPackages(true);
+
 		return vscode.window.showQuickPick(packages);
 	} catch (err) {
 		if (typeof err === "string" && err.startsWith(missingToolMsg)) {
@@ -91,6 +99,7 @@ export function getTextEditForAddImport(arg: string): vscode.TextEdit[] {
 	const { imports, pkg } = parseFilePrelude(
 		vscode.window.activeTextEditor.document.getText(),
 	);
+
 	if (
 		imports.some((block) => block.pkgs.some((pkgpath) => pkgpath === arg))
 	) {
@@ -98,11 +107,13 @@ export function getTextEditForAddImport(arg: string): vscode.TextEdit[] {
 	}
 
 	const multis = imports.filter((x) => x.kind === "multi");
+
 	const minusCgo = imports.filter((x) => x.kind !== "pseudo");
 
 	if (multis.length > 0) {
 		// There is a multiple import declaration, add to the last one
 		const lastImportSection = multis[multis.length - 1];
+
 		if (lastImportSection.end === -1) {
 			// For some reason there was an empty import section like `import ()`
 			return [
@@ -133,6 +144,7 @@ export function getTextEditForAddImport(arg: string): vscode.TextEdit[] {
 			const currentLine = vscode.window.activeTextEditor.document.lineAt(
 				element.start,
 			).text;
+
 			const updatedLine = currentLine.replace(/^\s*import\s*/, "\t");
 			edits.push(
 				vscode.TextEdit.replace(
@@ -170,10 +182,12 @@ export function getTextEditForAddImport(arg: string): vscode.TextEdit[] {
 
 export function addImport(arg: { importPath: string; from: string }) {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showErrorMessage(
 			"No active editor found to add imports.",
 		);
+
 		return;
 	}
 	const p =
@@ -185,7 +199,9 @@ export function addImport(arg: { importPath: string; from: string }) {
 			return;
 		}
 		sendTelemetryEventForAddImportCmd(arg);
+
 		const edits = getTextEditForAddImport(imp);
+
 		if (edits && edits.length > 0) {
 			const edit = new vscode.WorkspaceEdit();
 			edit.set(editor.document.uri, edits);
@@ -196,17 +212,21 @@ export function addImport(arg: { importPath: string; from: string }) {
 
 export function addImportToWorkspace() {
 	const editor = vscode.window.activeTextEditor;
+
 	if (!editor) {
 		vscode.window.showErrorMessage(
 			"No active editor found to determine current package.",
 		);
+
 		return;
 	}
 	const selection = editor.selection;
 
 	let importPath = "";
+
 	if (!selection.isEmpty) {
 		let selectedText = editor.document.getText(selection).trim();
+
 		if (selectedText.length > 0) {
 			if (selectedText.indexOf(" ") === -1) {
 				// Attempt to load a partial import path based on currently selected text
@@ -224,19 +244,23 @@ export function addImportToWorkspace() {
 	if (importPath === "") {
 		// Failing that use the current line
 		const selectedText = editor.document.lineAt(selection.active.line).text;
+
 		importPath = getImportPath(selectedText);
 	}
 
 	if (importPath === "") {
 		vscode.window.showErrorMessage("No import path to add");
+
 		return;
 	}
 
 	const goRuntimePath = getBinPath("go");
+
 	if (!goRuntimePath) {
 		vscode.window.showErrorMessage(
 			`Failed to run "go list" to find the package as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
 		);
+
 		return;
 	}
 	const env = getToolsEnvVars();
@@ -247,10 +271,12 @@ export function addImportToWorkspace() {
 		{ env },
 		(err, stdout, stderr) => {
 			const dirs = (stdout || "").split("\n");
+
 			if (!dirs.length || !dirs[0].trim()) {
 				vscode.window.showErrorMessage(
 					`Could not find package ${importPath}`,
 				);
+
 				return;
 			}
 
@@ -258,10 +284,12 @@ export function addImportToWorkspace() {
 
 			const existingWorkspaceFolder =
 				vscode.workspace.getWorkspaceFolder(importPathUri);
+
 			if (existingWorkspaceFolder !== undefined) {
 				vscode.window.showInformationMessage(
 					"Already available under " + existingWorkspaceFolder.name,
 				);
+
 				return;
 			}
 

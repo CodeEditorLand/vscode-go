@@ -16,6 +16,7 @@ export function isDiffToolAvailable(): boolean {
 		const envPath =
 			process.env["PATH"] ||
 			(process.platform === "win32" ? process.env["Path"] : null);
+
 		if (!envPath) {
 			return false;
 		}
@@ -48,14 +49,17 @@ export class Edit {
 		switch (this.action) {
 			case EditTypes.EDIT_INSERT:
 				editBuilder.insert(this.start, this.text);
+
 				break;
 
 			case EditTypes.EDIT_DELETE:
 				editBuilder.delete(new Range(this.start, this.end));
+
 				break;
 
 			case EditTypes.EDIT_REPLACE:
 				editBuilder.replace(new Range(this.start, this.end), this.text);
+
 				break;
 		}
 	}
@@ -68,10 +72,12 @@ export class Edit {
 		switch (this.action) {
 			case EditTypes.EDIT_INSERT:
 				workspaceEdit.insert(fileUri, this.start, this.text);
+
 				break;
 
 			case EditTypes.EDIT_DELETE:
 				workspaceEdit.delete(fileUri, new Range(this.start, this.end));
+
 				break;
 
 			case EditTypes.EDIT_REPLACE:
@@ -80,6 +86,7 @@ export class Edit {
 					new Range(this.start, this.end),
 					this.text,
 				);
+
 				break;
 		}
 	}
@@ -101,6 +108,7 @@ function parseUniDiffs(diffOutput: jsDiff.IUniDiff[]): FilePatch[] {
 	const filePatches: FilePatch[] = [];
 	diffOutput.forEach((uniDiff: jsDiff.IUniDiff) => {
 		let edit: Edit;
+
 		const edits: Edit[] = [];
 		uniDiff.hunks.forEach((hunk: jsDiff.IHunk) => {
 			let startLine = hunk.oldStart;
@@ -114,7 +122,9 @@ function parseUniDiffs(diffOutput: jsDiff.IUniDiff[]): FilePatch[] {
 						edit.end = new Position(startLine, 0);
 						edits.push(edit);
 						startLine++;
+
 						break;
+
 					case "+":
 						edit = new Edit(
 							EditTypes.EDIT_INSERT,
@@ -122,9 +132,12 @@ function parseUniDiffs(diffOutput: jsDiff.IUniDiff[]): FilePatch[] {
 						);
 						edit.text += line.substr(1) + "\n";
 						edits.push(edit);
+
 						break;
+
 					case " ":
 						startLine++;
+
 						break;
 				}
 			});
@@ -163,7 +176,9 @@ export function getEdits(
 		"",
 		"",
 	);
+
 	const filePatches: FilePatch[] = parseUniDiffs([unifiedDiffs]);
+
 	return filePatches[0];
 }
 
@@ -177,6 +192,8 @@ export function getEdits(
  */
 export function getEditsFromUnifiedDiffStr(diffstr: string): FilePatch[] {
 	const unifiedDiffs: jsDiff.IUniDiff[] = jsDiff.parsePatch(diffstr);
+
 	const filePatches: FilePatch[] = parseUniDiffs(unifiedDiffs);
+
 	return filePatches;
 }

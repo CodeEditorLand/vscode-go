@@ -103,6 +103,7 @@ export let vetDiagnosticCollection: vscode.DiagnosticCollection;
 
 export function activate(ctx: vscode.ExtensionContext): void {
 	setGlobalState(ctx.globalState);
+
 	setWorkspaceState(ctx.workspaceState);
 
 	updateGoPathGoRootFromConfig().then(async () => {
@@ -113,13 +114,17 @@ export function activate(ctx: vscode.ExtensionContext): void {
 		}
 		const toolsGoInfo: { [id: string]: GoInfo } =
 			ctx.globalState.get("toolsGoInfo") || {};
+
 		const toolsGopath = getToolsGopath() || getCurrentGoPath();
+
 		if (!toolsGoInfo[toolsGopath]) {
 			toolsGoInfo[toolsGopath] = { goroot: null, version: null };
 		}
 		const prevGoroot = toolsGoInfo[toolsGopath].goroot;
+
 		const currentGoroot: string =
 			process.env["GOROOT"] && process.env["GOROOT"].toLowerCase();
+
 		if (prevGoroot && prevGoroot.toLowerCase() !== currentGoroot) {
 			vscode.window
 				.showInformationMessage(
@@ -133,8 +138,10 @@ export function activate(ctx: vscode.ExtensionContext): void {
 				});
 		} else {
 			const currentVersion = await getGoVersion();
+
 			if (currentVersion) {
 				const prevVersion = toolsGoInfo[toolsGopath].version;
+
 				const currVersionString = currentVersion.format();
 
 				if (prevVersion !== currVersionString) {
@@ -162,6 +169,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 		// This handles all of the configurations and registrations for the language server.
 		// It also registers the necessary language feature providers that the language server may not support.
 		const ok = await registerLanguageFeatures(ctx);
+
 		if (!ok) {
 			registerUsualProviders(ctx);
 		}
@@ -198,6 +206,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	showHideStatus(vscode.window.activeTextEditor);
 
 	const testCodeLensProvider = new GoRunTestCodeLensProvider();
+
 	const referencesCodeLensProvider = new GoReferencesCodeLensProvider();
 
 	ctx.subscriptions.push(
@@ -242,8 +251,11 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.gopath", () => {
 			const gopath = getCurrentGoPath();
+
 			let msg = `${gopath} is the current GOPATH.`;
+
 			const wasInfered = getGoConfig()["inferGopath"];
+
 			const root = getWorkspaceFolderPath(
 				vscode.window.activeTextEditor &&
 					vscode.window.activeTextEditor.document.uri,
@@ -258,6 +270,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			}
 
 			vscode.window.showInformationMessage(msg);
+
 			return gopath;
 		}),
 	);
@@ -283,12 +296,14 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			outputChannel.appendLine("");
 
 			const goVersion = await getGoVersion();
+
 			const allTools = getConfiguredTools(goVersion);
 
 			allTools.forEach((tool) => {
 				const toolPath = getBinPath(tool.name);
 				// TODO(hyangah): print alternate tool info if set.
 				let msg = "not installed";
+
 				if (path.isAbsolute(toolPath)) {
 					// getBinPath returns the absolute path is the tool exists.
 					// (See getBinPathWithPreferredGopath which is called underneath)
@@ -357,6 +372,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.test.package", (args) => {
 			const goConfig = getGoConfig();
+
 			const isBenchmark = false;
 			testCurrentPackage(goConfig, isBenchmark, args);
 		}),
@@ -365,6 +381,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.benchmark.package", (args) => {
 			const goConfig = getGoConfig();
+
 			const isBenchmark = true;
 			testCurrentPackage(goConfig, isBenchmark, args);
 		}),
@@ -373,6 +390,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.test.file", (args) => {
 			const goConfig = getGoConfig();
+
 			const isBenchmark = false;
 			testCurrentFile(goConfig, isBenchmark, args);
 		}),
@@ -381,6 +399,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.benchmark.file", (args) => {
 			const goConfig = getGoConfig();
+
 			const isBenchmark = true;
 			testCurrentFile(goConfig, isBenchmark, args);
 		}),
@@ -434,6 +453,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			if (Array.isArray(args) && args.length) {
 				const goVersion = await getGoVersion();
 				installTools(args, goVersion);
+
 				return;
 			}
 			installAllTools();
@@ -486,6 +506,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 				}
 				if (e.affectsConfiguration("go.toolsEnvVars")) {
 					const env = getToolsEnvVars();
+
 					if (GO111MODULE !== env["GO111MODULE"]) {
 						const reloadMsg =
 							"Reload VS Code window so that the Go tools can respect the change to GO111MODULE";
@@ -531,6 +552,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.debug.startSession", (config) => {
 			let workspaceFolder;
+
 			if (vscode.window.activeTextEditor) {
 				workspaceFolder = vscode.workspace.getWorkspaceFolder(
 					vscode.window.activeTextEditor.document.uri,
@@ -566,6 +588,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 					const selectedCmd = extCommands.find(
 						(x) => x.title === cmd,
 					);
+
 					if (selectedCmd) {
 						vscode.commands.executeCommand(selectedCmd.command);
 					}
@@ -635,9 +658,11 @@ export function activate(ctx: vscode.ExtensionContext): void {
 				vscode.window.showErrorMessage(
 					"Cannot apply coverage profile when no Go file is open.",
 				);
+
 				return;
 			}
 			const lastCoverProfilePathKey = "lastCoverProfilePathKey";
+
 			const lastCoverProfilePath = getFromWorkspaceState(
 				lastCoverProfilePathKey,
 				"",
@@ -655,6 +680,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 						vscode.window.showErrorMessage(
 							`Cannot find the file ${coverProfilePath}`,
 						);
+
 						return;
 					}
 					if (coverProfilePath !== lastCoverProfilePath) {
@@ -728,11 +754,14 @@ function addOnSaveTextDocumentListeners(ctx: vscode.ExtensionContext) {
 			}
 			if (vscode.debug.activeDebugSession) {
 				const neverAgain = { title: `Don't Show Again` };
+
 				const ignoreActiveDebugWarningKey =
 					"ignoreActiveDebugWarningKey";
+
 				const ignoreActiveDebugWarning = getFromGlobalState(
 					ignoreActiveDebugWarningKey,
 				);
+
 				if (!ignoreActiveDebugWarning) {
 					vscode.window
 						.showWarningMessage(

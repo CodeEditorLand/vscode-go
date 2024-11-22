@@ -26,6 +26,7 @@ const statusBarItem = vscode.window.createStatusBarItem(
 	vscode.StatusBarAlignment.Left,
 );
 statusBarItem.command = "go.test.showOutput";
+
 const neverAgain = { title: `Don't Show Again` };
 
 export function removeTestStatus(e: vscode.TextDocumentChangeEvent) {
@@ -41,6 +42,7 @@ export function notifyIfGeneratedFile(
 	e: vscode.TextDocumentChangeEvent,
 ) {
 	const ctx: any = this;
+
 	if (e.document.isUntitled || e.document.languageId !== "go") {
 		return;
 	}
@@ -74,16 +76,20 @@ export function check(
 ): Promise<IToolCheckResults[]> {
 	diagnosticsStatusBarItem.hide();
 	outputChannel.clear();
+
 	const runningToolsPromises = [];
+
 	const cwd = path.dirname(fileUri.fsPath);
 
 	// If a user has enabled diagnostics via a language server,
 	// then we disable running build or vet to avoid duplicate errors and warnings.
 	const lspConfig = parseLanguageServerConfig();
+
 	const disableBuildAndVet =
 		lspConfig.enabled && lspConfig.features.diagnostics;
 
 	let testPromise: Thenable<boolean>;
+
 	const testConfig: TestConfig = {
 		goConfig,
 		dir: cwd,
@@ -99,8 +105,10 @@ export function check(
 
 		testPromise = isModSupported(fileUri).then((isMod) => {
 			testConfig.isMod = isMod;
+
 			return goTest(testConfig);
 		});
+
 		return testPromise;
 	};
 

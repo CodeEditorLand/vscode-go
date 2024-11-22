@@ -24,14 +24,17 @@ export function getBinPathFromEnvVar(
 	appendBinToPath: boolean,
 ): string {
 	toolName = correctBinname(toolName);
+
 	if (envVarValue) {
 		const paths = envVarValue.split(path.delimiter);
+
 		for (const p of paths) {
 			const binpath = path.join(
 				p,
 				appendBinToPath ? "bin" : "",
 				toolName,
 			);
+
 			if (executableFileExists(binpath)) {
 				return binpath;
 			}
@@ -55,6 +58,7 @@ export function getBinPathWithPreferredGopath(
 		executableFileExists(alternateTool)
 	) {
 		binPathCache[toolName] = alternateTool;
+
 		return alternateTool;
 	}
 
@@ -62,13 +66,16 @@ export function getBinPathWithPreferredGopath(
 		alternateTool && !path.isAbsolute(alternateTool)
 			? alternateTool
 			: toolName;
+
 	const pathFromGoBin = getBinPathFromEnvVar(
 		binname,
 		process.env["GOBIN"],
 		false,
 	);
+
 	if (pathFromGoBin) {
 		binPathCache[toolName] = pathFromGoBin;
+
 		return pathFromGoBin;
 	}
 
@@ -80,8 +87,10 @@ export function getBinPathWithPreferredGopath(
 				preferred,
 				true,
 			);
+
 			if (pathFrompreferredGoPath) {
 				binPathCache[toolName] = pathFrompreferredGoPath;
+
 				return pathFrompreferredGoPath;
 			}
 		}
@@ -93,15 +102,19 @@ export function getBinPathWithPreferredGopath(
 		process.env["GOROOT"],
 		true,
 	);
+
 	if (pathFromGoRoot) {
 		binPathCache[toolName] = pathFromGoRoot;
+
 		return pathFromGoRoot;
 	}
 
 	// Finally search PATH parts
 	const pathFromPath = getBinPathFromEnvVar(binname, envPath, false);
+
 	if (pathFromPath) {
 		binPathCache[toolName] = pathFromPath;
+
 		return pathFromPath;
 	}
 
@@ -111,8 +124,10 @@ export function getBinPathWithPreferredGopath(
 			process.platform === "win32"
 				? "C:\\Go\\bin\\go.exe"
 				: "/usr/local/go/bin/go";
+
 		if (executableFileExists(defaultPathForGo)) {
 			binPathCache[toolName] = defaultPathForGo;
+
 			return defaultPathForGo;
 		}
 		return;
@@ -131,8 +146,10 @@ function correctBinname(toolName: string) {
 
 function executableFileExists(filePath: string): boolean {
 	let exists = true;
+
 	try {
 		exists = fs.statSync(filePath).isFile();
+
 		if (exists) {
 			fs.accessSync(filePath, fs.constants.F_OK | fs.constants.X_OK);
 		}
@@ -175,6 +192,7 @@ export function stripBOM(s: string): string {
 
 export function parseEnvFile(envFilePath: string): { [key: string]: string } {
 	const env: { [key: string]: any } = {};
+
 	if (!envFilePath) {
 		return env;
 	}
@@ -183,8 +201,10 @@ export function parseEnvFile(envFilePath: string): { [key: string]: string } {
 		const buffer = stripBOM(fs.readFileSync(envFilePath, "utf8"));
 		buffer.split("\n").forEach((line) => {
 			const r = line.match(/^\s*([\w\.\-]+)\s*=\s*(.*)?\s*$/);
+
 			if (r !== null) {
 				let value = r[2] || "";
+
 				if (
 					value.length > 0 &&
 					value.charAt(0) === '"' &&
@@ -195,6 +215,7 @@ export function parseEnvFile(envFilePath: string): { [key: string]: string } {
 				env[r[1]] = value.replace(/(^['"]|['"]$)/g, "");
 			}
 		});
+
 		return env;
 	} catch (e) {
 		throw new Error(
@@ -213,6 +234,7 @@ export function getInferredGopath(folderPath: string): string {
 
 	// find src directory closest to given folder path
 	const srcIdx = dirs.lastIndexOf("src");
+
 	if (srcIdx > 0) {
 		return folderPath.substr(
 			0,
@@ -234,6 +256,7 @@ export function getCurrentGoWorkspaceFromGOPATH(
 		return;
 	}
 	const workspaces: string[] = gopath.split(path.delimiter);
+
 	let currentWorkspace = "";
 	currentFileDirPath = fixDriveCasingInWindows(currentFileDirPath);
 
@@ -241,6 +264,7 @@ export function getCurrentGoWorkspaceFromGOPATH(
 	// under any of the workspaces in $GOPATH
 	for (const workspace of workspaces) {
 		const possibleCurrentWorkspace = path.join(workspace, "src");
+
 		if (
 			currentFileDirPath.startsWith(possibleCurrentWorkspace) ||
 			(process.platform === "win32" &&
@@ -278,6 +302,7 @@ export function getToolFromToolPath(toolPath: string): string | undefined {
 		return;
 	}
 	let tool = path.basename(toolPath);
+
 	if (process.platform === "win32" && tool.endsWith(".exe")) {
 		tool = tool.substr(0, tool.length - 4);
 	}

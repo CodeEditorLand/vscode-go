@@ -24,14 +24,17 @@ export let GO111MODULE: string;
 
 async function runGoModEnv(folderPath: string): Promise<string> {
 	const goExecutable = getBinPath("go");
+
 	if (!goExecutable) {
 		console.warn(
 			`Failed to run "go env GOMOD" to find mod file as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
 		);
+
 		return;
 	}
 	const env = getToolsEnvVars();
 	GO111MODULE = env["GO111MODULE"];
+
 	return new Promise((resolve) => {
 		cp.execFile(
 			goExecutable,
@@ -40,6 +43,7 @@ async function runGoModEnv(folderPath: string): Promise<string> {
 			(err, stdout) => {
 				if (err) {
 					console.warn(`Error when running go env GOMOD: ${err}`);
+
 					return resolve();
 				}
 				const [goMod] = stdout.split("\n");
@@ -57,6 +61,7 @@ export const packagePathToGoModPathMap: { [key: string]: string } = {};
 
 export async function getModFolderPath(fileuri: vscode.Uri): Promise<string> {
 	const pkgPath = path.dirname(fileuri.fsPath);
+
 	if (packagePathToGoModPathMap[pkgPath]) {
 		return packagePathToGoModPathMap[pkgPath];
 	}
@@ -64,19 +69,24 @@ export async function getModFolderPath(fileuri: vscode.Uri): Promise<string> {
 	// We never would be using the path under module cache for anything
 	// So, dont bother finding where exactly is the go.mod file
 	const moduleCache = getModuleCache();
+
 	if (fixDriveCasingInWindows(fileuri.fsPath).startsWith(moduleCache)) {
 		return moduleCache;
 	}
 	const goVersion = await getGoVersion();
+
 	if (goVersion.lt("1.11")) {
 		return;
 	}
 
 	let goModEnvResult = await runGoModEnv(pkgPath);
+
 	if (goModEnvResult) {
 		logModuleUsage();
 		goModEnvResult = path.dirname(goModEnvResult);
+
 		const goConfig = getGoConfig(fileuri);
+
 		let promptFormatTool = goConfig["formatTool"] === "goreturns";
 
 		if (goConfig["inferGopath"] === true) {
@@ -92,6 +102,7 @@ export async function getModFolderPath(fileuri: vscode.Uri): Promise<string> {
 		if (goConfig["useLanguageServer"] === false) {
 			const promptMsg =
 				"For better performance using Go modules, you can try the experimental Go language server, gopls.";
+
 			const choseToUpdateLS = await promptToUpdateToolForModules(
 				"gopls",
 				promptMsg,
@@ -117,6 +128,7 @@ export async function getModFolderPath(fileuri: vscode.Uri): Promise<string> {
 		}
 	}
 	packagePathToGoModPathMap[pkgPath] = goModEnvResult;
+
 	return goModEnvResult;
 }
 
@@ -142,20 +154,25 @@ export async function promptToUpdateToolForModules(
 		"promptedToolsForModules",
 		{},
 	);
+
 	if (promptedToolsForModules[tool]) {
 		return false;
 	}
 	const goVersion = await getGoVersion();
+
 	const selected = await vscode.window.showInformationMessage(
 		promptMsg,
 		"Update",
 		"Later",
 		`Don't show again`,
 	);
+
 	let choseToUpdate = false;
+
 	switch (selected) {
 		case "Update":
 			choseToUpdate = true;
+
 			if (!goConfig) {
 				goConfig = getGoConfig();
 			}
@@ -204,17 +221,22 @@ export async function promptToUpdateToolForModules(
 				"promptedToolsForModules",
 				promptedToolsForModules,
 			);
+
 			break;
+
 		case `Don't show again`:
 			promptedToolsForModules[tool] = true;
 			updateGlobalState(
 				"promptedToolsForModules",
 				promptedToolsForModules,
 			);
+
 			break;
+
 		case "Later":
 		default:
 			promptedToolsForCurrentSession.add(tool);
+
 			break;
 	}
 	return choseToUpdate;
@@ -227,22 +249,28 @@ export async function getCurrentPackage(cwd: string): Promise<string> {
 	}
 
 	const moduleCache = getModuleCache();
+
 	if (cwd.startsWith(moduleCache)) {
 		let importPath = cwd.substr(moduleCache.length + 1);
+
 		const matches = /@v\d+(\.\d+)?(\.\d+)?/.exec(importPath);
+
 		if (matches) {
 			importPath = importPath.substr(0, matches.index);
 		}
 
 		folderToPackageMapping[cwd] = importPath;
+
 		return importPath;
 	}
 
 	const goRuntimePath = getBinPath("go");
+
 	if (!goRuntimePath) {
 		console.warn(
 			`Failed to run "go list" to find current package as the "go" binary cannot be found in either GOROOT(${process.env["GOROOT"]}) or PATH(${envPath})`,
 		);
+
 		return;
 	}
 	return new Promise<string>((resolve) => {
@@ -250,6 +278,7 @@ export async function getCurrentPackage(cwd: string): Promise<string> {
 			cwd,
 			env: getToolsEnvVars(),
 		});
+
 		const chunks: any[] = [];
 		childProcess.stdout.on("data", (stdout) => {
 			chunks.push(stdout);
@@ -262,8 +291,10 @@ export async function getCurrentPackage(cwd: string): Promise<string> {
 				.toString()
 				.split("\n")
 				.filter((line) => line && line.indexOf(" ") === -1);
+
 			if (pkgs.length !== 1) {
 				resolve();
+
 				return;
 			}
 			folderToPackageMapping[cwd] = pkgs[0];

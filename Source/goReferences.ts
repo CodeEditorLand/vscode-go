@@ -39,21 +39,29 @@ export class GoReferenceProvider implements vscode.ReferenceProvider {
 		return new Promise<vscode.Location[]>((resolve, reject) => {
 			// get current word
 			const wordRange = document.getWordRangeAtPosition(position);
+
 			if (!wordRange) {
 				return resolve([]);
 			}
 
 			const goGuru = getBinPath("guru");
+
 			if (!path.isAbsolute(goGuru)) {
 				promptForMissingTool("guru");
+
 				return reject('Cannot find tool "guru" to find references.');
 			}
 
 			const filename = canonicalizeGOPATHPrefix(document.fileName);
+
 			const cwd = path.dirname(filename);
+
 			const offset = byteOffsetAt(document, wordRange.start);
+
 			const env = getToolsEnvVars();
+
 			const buildTags = getGoConfig(document.uri)["buildTags"];
+
 			const args = buildTags ? ["-tags", buildTags] : [];
 			args.push(
 				"-modified",
@@ -69,6 +77,7 @@ export class GoReferenceProvider implements vscode.ReferenceProvider {
 					try {
 						if (err && (<any>err).code === "ENOENT") {
 							promptForMissingTool("guru");
+
 							return reject(
 								'Cannot find tool "guru" to find references.',
 							);
@@ -81,10 +90,13 @@ export class GoReferenceProvider implements vscode.ReferenceProvider {
 						}
 
 						const lines = stdout.toString().split("\n");
+
 						const results: vscode.Location[] = [];
+
 						for (const line of lines) {
 							const match =
 								/^(.*):(\d+)\.(\d+)-(\d+)\.(\d+):/.exec(line);
+
 							if (!match) {
 								continue;
 							}
@@ -96,6 +108,7 @@ export class GoReferenceProvider implements vscode.ReferenceProvider {
 								lineEndStr,
 								colEndStr,
 							] = match;
+
 							const referenceResource = vscode.Uri.file(
 								path.resolve(cwd, file),
 							);
@@ -126,6 +139,7 @@ export class GoReferenceProvider implements vscode.ReferenceProvider {
 					}
 				},
 			);
+
 			if (process.pid) {
 				process.stdin.end(getFileArchive(document));
 			}
