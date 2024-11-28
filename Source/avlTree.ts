@@ -110,6 +110,7 @@ export class Node<K, V> {
 }
 
 export type DistanceFunction<K> = (a: K, b: K) => number;
+
 export type CompareFunction<K> = (a: K, b: K) => number;
 
 /**

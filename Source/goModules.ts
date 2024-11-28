@@ -142,6 +142,7 @@ function logModuleUsage() {
 }
 
 const promptedToolsForCurrentSession = new Set<string>();
+
 export async function promptToUpdateToolForModules(
 	tool: string,
 	promptMsg: string,
@@ -243,6 +244,7 @@ export async function promptToUpdateToolForModules(
 }
 
 const folderToPackageMapping: { [key: string]: string } = {};
+
 export async function getCurrentPackage(cwd: string): Promise<string> {
 	if (folderToPackageMapping[cwd]) {
 		return folderToPackageMapping[cwd];

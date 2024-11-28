@@ -98,7 +98,9 @@ import fs = require("fs");
 import vscode = require("vscode");
 
 export let buildDiagnosticCollection: vscode.DiagnosticCollection;
+
 export let lintDiagnosticCollection: vscode.DiagnosticCollection;
+
 export let vetDiagnosticCollection: vscode.DiagnosticCollection;
 
 export function activate(ctx: vscode.ExtensionContext): void {

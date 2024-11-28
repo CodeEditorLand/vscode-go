@@ -560,6 +560,7 @@ export function substituteEnv(input: string): string {
 }
 
 let currentGopath = "";
+
 export function getCurrentGoPath(workspaceUri?: vscode.Uri): string {
 	const activeEditorUri =
 		vscode.window.activeTextEditor &&
