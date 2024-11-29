@@ -34,6 +34,7 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 		if (!this.enabled) {
 			return [];
 		}
+
 		const codeLensConfig = getGoConfig(document.uri).get<{
 			[key: string]: any;
 		}>("enableCodeLens");
@@ -63,11 +64,13 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 						.text.substr(position.character);
 
 					const match = methodRegex.exec(funcDecl);
+
 					position = position.translate(
 						0,
 						match ? match[0].length : 5,
 					);
 				}
+
 				return new ReferencesCodeLens(
 					document,
 					new vscode.Range(position, position),
@@ -118,6 +121,7 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 				},
 				(err) => {
 					console.log(err);
+
 					codeLens.command = {
 						title: "Error finding references",
 						command: "",
@@ -145,6 +149,7 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 			if (symbol.kind === vscode.SymbolKind.Interface) {
 				return true;
 			}
+
 			if (symbol.kind === vscode.SymbolKind.Function) {
 				if (
 					isTestFile &&
@@ -154,8 +159,10 @@ export class GoReferencesCodeLensProvider extends GoBaseCodeLensProvider {
 				) {
 					return false;
 				}
+
 				return true;
 			}
+
 			return false;
 		});
 	}

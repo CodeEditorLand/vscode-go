@@ -68,6 +68,7 @@ export class GoRenameProvider implements vscode.RenameProvider {
 			if (buildTags) {
 				gorenameArgs.push("-tags", buildTags);
 			}
+
 			const canRenameToolUseDiff = isDiffToolAvailable();
 
 			if (canRenameToolUseDiff) {
@@ -91,12 +92,16 @@ export class GoRenameProvider implements vscode.RenameProvider {
 
 							return reject("Could not find gorename tool.");
 						}
+
 						if (err) {
 							const errMsg = stderr
 								? "Rename failed: " + stderr.replace(/\n/g, " ")
 								: "Rename failed";
+
 							console.log(errMsg);
+
 							outputChannel.appendLine(errMsg);
+
 							outputChannel.show();
 
 							return reject();
@@ -107,10 +112,12 @@ export class GoRenameProvider implements vscode.RenameProvider {
 						if (canRenameToolUseDiff) {
 							const filePatches =
 								getEditsFromUnifiedDiffStr(stdout);
+
 							filePatches.forEach((filePatch: FilePatch) => {
 								const fileUri = vscode.Uri.file(
 									filePatch.fileName,
 								);
+
 								filePatch.edits.forEach((edit: Edit) => {
 									edit.applyUsingWorkspaceEdit(
 										result,

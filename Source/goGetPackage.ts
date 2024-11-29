@@ -46,8 +46,11 @@ export function goGetPackage() {
 			// go get -v uses stderr to write output regardless of success or failure
 			if (stderr !== "") {
 				outputChannel.show();
+
 				outputChannel.clear();
+
 				outputChannel.appendLine(stderr);
+
 				buildCode();
 
 				return;

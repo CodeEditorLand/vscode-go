@@ -20,7 +20,9 @@ import vscode = require("vscode");
 // Interface for the output from fillstruct
 interface GoFillStructOutput {
 	start: number;
+
 	end: number;
+
 	code: string;
 }
 
@@ -40,21 +42,27 @@ function getCommonArgs(editor: vscode.TextEditor): string[] | undefined {
 
 		return;
 	}
+
 	if (!editor.document.fileName.endsWith(".go")) {
 		vscode.window.showInformationMessage("Current file is not a Go file.");
 
 		return;
 	}
+
 	const args = ["-modified", "-file", editor.document.fileName];
 
 	if (editor.selection.isEmpty) {
 		const offset = byteOffsetAt(editor.document, editor.selection.start);
+
 		args.push("-offset");
+
 		args.push(offset.toString());
 	} else {
 		args.push("-line");
+
 		args.push(`${editor.selection.start.line + 1}`);
 	}
+
 	return args;
 }
 
@@ -88,6 +96,7 @@ function execFillStruct(
 
 						return reject();
 					}
+
 					if (err) {
 						vscode.window.showInformationMessage(
 							`Cannot fill struct: ${stderr}`,
@@ -128,6 +137,7 @@ function execFillStruct(
 										offsetConverter(structToFill.end),
 									),
 								);
+
 								editBuilder.replace(rangeToReplace, out);
 							});
 						})

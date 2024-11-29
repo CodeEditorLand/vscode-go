@@ -21,18 +21,26 @@ import vscode = require("vscode");
 // Keep in sync with https://github.com/ramya-rao-a/go-outline
 export interface GoOutlineRange {
 	start: number;
+
 	end: number;
 }
 
 export interface GoOutlineDeclaration {
 	label: string;
+
 	type: string;
+
 	receiverType?: string;
+
 	icon?: string; // icon class or null to use the default images based on the type
 	start: number;
+
 	end: number;
+
 	children?: GoOutlineDeclaration[];
+
 	signature?: GoOutlineRange;
+
 	comment?: GoOutlineRange;
 }
 
@@ -88,6 +96,7 @@ export function runGoOutline(
 		if (options.importsOption === GoOutlineImportsOptions.Only) {
 			gooutlineFlags.push("-imports-only");
 		}
+
 		if (options.document) {
 			gooutlineFlags.push("-modified");
 		}
@@ -108,6 +117,7 @@ export function runGoOutline(
 					if (err && (<any>err).code === "ENOENT") {
 						promptForMissingTool("go-outline");
 					}
+
 					if (
 						stderr &&
 						stderr.startsWith("flag provided but not defined: ")
@@ -122,6 +132,7 @@ export function runGoOutline(
 							options.importsOption =
 								GoOutlineImportsOptions.Include;
 						}
+
 						if (
 							stderr.startsWith(
 								"flag provided but not defined: -modified",
@@ -129,15 +140,18 @@ export function runGoOutline(
 						) {
 							options.document = null;
 						}
+
 						p = null;
 
 						return runGoOutline(options, token).then((results) => {
 							return resolve(results);
 						});
 					}
+
 					if (err) {
 						return resolve(null);
 					}
+
 					const result = stdout.toString();
 
 					const decls = <GoOutlineDeclaration[]>JSON.parse(result);
@@ -177,6 +191,7 @@ function convertToCodeSymbols(
 		if (!includeImports && decl.type === "import") {
 			return;
 		}
+
 		if (decl.label === "_" && decl.type === "variable") {
 			return;
 		}
@@ -213,6 +228,7 @@ function convertToCodeSymbols(
 			const regexInterface = new RegExp(
 				`^\\s*type\\s+${decl.label}\\s+interface\\b`,
 			);
+
 			decl.type = regexStruct.test(line.text)
 				? "struct"
 				: regexInterface.test(line.text)
@@ -252,10 +268,12 @@ export class GoDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 	): Thenable<vscode.DocumentSymbol[]> {
 		if (typeof this.includeImports !== "boolean") {
 			const gotoSymbolConfig = getGoConfig(document.uri)["gotoSymbol"];
+
 			this.includeImports = gotoSymbolConfig
 				? gotoSymbolConfig["includeImports"]
 				: false;
 		}
+
 		const options: GoOutlineOptions = {
 			fileName: document.fileName,
 			document,

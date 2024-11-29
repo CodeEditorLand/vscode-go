@@ -14,7 +14,9 @@ export interface Tool {
 	name: string;
 
 	importPath: string;
+
 	isImportant: boolean;
+
 	description: string;
 }
 
@@ -28,6 +30,7 @@ export function getImportPath(tool: Tool, goVersion: GoVersion): string {
 	if (tool.name === "gocode" && goVersion.lt("1.10")) {
 		return "github.com/nsf/gocode";
 	}
+
 	return tool.importPath;
 }
 
@@ -41,6 +44,7 @@ export function getImportPathWithVersion(
 	if (version) {
 		return importPath + "@v" + version;
 	}
+
 	return importPath;
 }
 /**

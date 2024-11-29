@@ -49,6 +49,7 @@ function vscodeKindFromGoCodeClass(
 				case "interface":
 					return vscode.CompletionItemKind.Interface;
 			}
+
 			return vscode.CompletionItemKind.Struct;
 
 		case "func":
@@ -60,20 +61,27 @@ function vscodeKindFromGoCodeClass(
 		case "import":
 			return vscode.CompletionItemKind.Module;
 	}
+
 	return vscode.CompletionItemKind.Property; // TODO@EG additional mappings needed?
 }
 
 interface GoCodeSuggestion {
 	class: string;
+
 	package?: string;
+
 	name: string;
+
 	type: string;
+
 	receiver?: string;
 }
 
 class ExtendedCompletionItem extends vscode.CompletionItem {
 	public package?: string;
+
 	public receiver?: string;
+
 	public fileName: string;
 }
 
@@ -87,13 +95,21 @@ export class GoCompletionItemProvider
 	implements vscode.CompletionItemProvider, vscode.Disposable
 {
 	private pkgsList = new Map<string, PackageInfo>();
+
 	private killMsgShown: boolean = false;
+
 	private setGocodeOptions: boolean = true;
+
 	private isGoMod: boolean = false;
+
 	private globalState: vscode.Memento;
+
 	private previousFile: string;
+
 	private previousFileDir: string;
+
 	private gocodeFlags: string[];
+
 	private excludeDocs: boolean = false;
 
 	constructor(globalState?: vscode.Memento) {
@@ -114,9 +130,11 @@ export class GoCompletionItemProvider
 			if (!result) {
 				return new vscode.CompletionList([], false);
 			}
+
 			if (Array.isArray(result)) {
 				return new vscode.CompletionList(result, false);
 			}
+
 			return result;
 		});
 	}
@@ -173,6 +191,7 @@ export class GoCompletionItemProvider
 		}
 
 		this.excludeDocs = false;
+
 		this.gocodeFlags = ["-f=json"];
 
 		if (Array.isArray(config["gocodeFlags"])) {
@@ -266,10 +285,12 @@ export class GoCompletionItemProvider
 								);
 
 								const textToAdd = `import "${pkgPath[0]}"\n`;
+
 								inputText =
 									inputText.substr(0, posToAddImport) +
 									textToAdd +
 									inputText.substr(posToAddImport);
+
 								offset += textToAdd.length;
 
 								// Now that we have the package imported in the inputText, run gocode again
@@ -293,25 +314,33 @@ export class GoCompletionItemProvider
 										item.additionalTextEdits =
 											getTextEditForAddImport(pkgPath[0]);
 									});
+
 									resolve(newsuggestions);
 								}, reject);
 							}
+
 							if (pkgPath.length > 1) {
 								pkgPath.forEach((pkg) => {
 									const item = new vscode.CompletionItem(
 										`${lineTillCurrentPosition.replace(".", "").trim()} (${pkg})`,
 										vscode.CompletionItemKind.Module,
 									);
+
 									item.additionalTextEdits =
 										getTextEditForAddImport(pkg);
+
 									item.insertText = "";
+
 									item.detail = pkg;
+
 									item.command = {
 										title: "Trigger Suggest",
 										command: "editor.action.triggerSuggest",
 									};
+
 									suggestions.push(item);
 								});
+
 								resolve(
 									new vscode.CompletionList(
 										suggestions,
@@ -320,6 +349,7 @@ export class GoCompletionItemProvider
 								);
 							}
 						}
+
 						resolve(suggestions);
 					}, reject);
 				},
@@ -382,6 +412,7 @@ export class GoCompletionItemProvider
 
 			if (excludeDocsIndex >= 0) {
 				this.gocodeFlags.splice(excludeDocsIndex, 1);
+
 				this.excludeDocs = true;
 			}
 
@@ -391,16 +422,21 @@ export class GoCompletionItemProvider
 				[...this.gocodeFlags, "autocomplete", filename, "" + offset],
 				{ env },
 			);
+
 			p.stdout.on("data", (data) => (stdout += data));
+
 			p.stderr.on("data", (data) => (stderr += data));
+
 			p.on("error", (err) => {
 				if (err && (<any>err).code === "ENOENT") {
 					promptForMissingTool(gocodeName);
 
 					return reject();
 				}
+
 				return reject(err);
 			});
+
 			p.on("close", (code) => {
 				try {
 					if (code !== 0) {
@@ -413,15 +449,19 @@ export class GoCompletionItemProvider
 							vscode.window.showErrorMessage(
 								"Auto-completion feature failed as an older gocode process is still running. Please kill the running process for gocode and try again.",
 							);
+
 							this.killMsgShown = true;
 						}
+
 						if (
 							stderr.startsWith("flag provided but not defined:")
 						) {
 							promptForUpdatingTool(gocodeName);
 						}
+
 						return reject();
 					}
+
 					const results = <[number, GoCodeSuggestion[]]>(
 						JSON.parse(stdout.toString())
 					);
@@ -440,16 +480,22 @@ export class GoCompletionItemProvider
 							if (inString && suggest.class !== "import") {
 								continue;
 							}
+
 							const item = new ExtendedCompletionItem(
 								suggest.name,
 							);
+
 							item.kind = vscodeKindFromGoCodeClass(
 								suggest.class,
 								suggest.type,
 							);
+
 							item.package = suggest.package;
+
 							item.receiver = suggest.receiver;
+
 							item.fileName = document.fileName;
+
 							item.detail = suggest.type;
 
 							if (
@@ -459,6 +505,7 @@ export class GoCompletionItemProvider
 							) {
 								areCompletionsForPackageSymbols = true;
 							}
+
 							if (suggest.class === "package") {
 								const possiblePackageImportPaths =
 									this.getPackageImportPath(item.label);
@@ -466,8 +513,10 @@ export class GoCompletionItemProvider
 								if (possiblePackageImportPaths.length === 1) {
 									item.detail = possiblePackageImportPaths[0];
 								}
+
 								packageSuggestions.push(suggest.name);
 							}
+
 							if (inString && suggest.class === "import") {
 								item.textEdit = new vscode.TextEdit(
 									new vscode.Range(
@@ -481,6 +530,7 @@ export class GoCompletionItemProvider
 									suggest.name,
 								);
 							}
+
 							if (
 								(config["useCodeSnippetsOnFunctionSuggest"] ||
 									config[
@@ -528,11 +578,13 @@ export class GoCompletionItemProvider
 												);
 											}
 										}
+
 										paramSnippets.push(
 											"${" + (i + 1) + ":" + param + "}",
 										);
 									}
 								}
+
 								item.insertText = new vscode.SnippetString(
 									suggest.name +
 										"(" +
@@ -540,6 +592,7 @@ export class GoCompletionItemProvider
 										")",
 								);
 							}
+
 							if (
 								config["useCodeSnippetsOnFunctionSuggest"] &&
 								suggest.class === "type" &&
@@ -565,10 +618,12 @@ export class GoCompletionItemProvider
 											param =
 												"arg" + (i + 1) + " " + param;
 										}
+
 										const arg = param.substr(
 											0,
 											param.indexOf(" "),
 										);
+
 										paramSnippets.push(
 											"${" +
 												(i + 1) +
@@ -582,6 +637,7 @@ export class GoCompletionItemProvider
 										);
 									}
 								}
+
 								item.insertText = new vscode.SnippetString(
 									suggest.name +
 										"(func(" +
@@ -603,9 +659,13 @@ export class GoCompletionItemProvider
 									suggest.name + " method",
 									vscode.CompletionItemKind.Snippet,
 								);
+
 								auxItem.label = "func (*" + suggest.name + ")";
+
 								auxItem.filterText = suggest.name;
+
 								auxItem.detail = "Method snippet";
+
 								auxItem.sortText = "b";
 
 								const prefix =
@@ -618,14 +678,17 @@ export class GoCompletionItemProvider
 								const snippet =
 									prefix +
 									" ${1:methodName}(${2}) ${3} {\n\t$0\n}";
+
 								auxItem.insertText = new vscode.SnippetString(
 									snippet,
 								);
+
 								suggestions.push(auxItem);
 							}
 
 							// Add same sortText to all suggestions from gocode so that they appear before the unimported packages
 							item.sortText = "a";
+
 							suggestions.push(item);
 						}
 					}
@@ -671,11 +734,14 @@ export class GoCompletionItemProvider
 			this.previousFileDir !== path.dirname(currentFile)
 		) {
 			this.previousFile = currentFile;
+
 			this.previousFileDir = path.dirname(currentFile);
+
 			checkModSupport = isModSupported(fileuri).then(
 				(result) => (this.isGoMod = result),
 			);
 		}
+
 		const setPkgsList = getImportablePackages(currentFile, true).then(
 			(pkgMap) => {
 				this.pkgsList = pkgMap;
@@ -714,6 +780,7 @@ export class GoCompletionItemProvider
 								}
 							});
 					}
+
 					this.setGocodeOptions = false;
 
 					return resolve();
@@ -725,6 +792,7 @@ export class GoCompletionItemProvider
 
 				const setOption = () => {
 					const [name, value] = optionsToSet.pop();
+
 					cp.execFile(gocode, ["set", name, value], { env }, () => {
 						if (optionsToSet.length) {
 							setOption();
@@ -737,6 +805,7 @@ export class GoCompletionItemProvider
 				if (existingOptions.indexOf("propose-builtins true") === -1) {
 					optionsToSet.push(["propose-builtins", "true"]);
 				}
+
 				if (
 					existingOptions.indexOf(
 						`autobuild ${goConfig["gocodeAutoBuild"]}`,
@@ -747,6 +816,7 @@ export class GoCompletionItemProvider
 						goConfig["gocodeAutoBuild"],
 					]);
 				}
+
 				if (
 					existingOptions.indexOf(
 						`package-lookup-mode ${goConfig["gocodePackageLookupMode"]}`,
@@ -757,6 +827,7 @@ export class GoCompletionItemProvider
 						goConfig["gocodePackageLookupMode"],
 					]);
 				}
+
 				if (!optionsToSet.length) {
 					return resolve();
 				}
@@ -794,6 +865,7 @@ export class GoCompletionItemProvider
 	 */
 	private getPackageImportPath(input: string): string[] {
 		const matchingPackages: any[] = [];
+
 		this.pkgsList.forEach((info: PackageInfo, pkgPath: string) => {
 			if (input === info.name) {
 				matchingPackages.push(pkgPath);
@@ -833,6 +905,7 @@ function getCommentCompletion(
 				vscodeKindFromGoCodeClass(memberType[1], ""),
 			);
 		}
+
 		return suggestionItem;
 	}
 }
@@ -848,6 +921,7 @@ function getCurrentWord(
 
 	if (wordAtPosition && wordAtPosition.start.character < position.character) {
 		const word = document.getText(wordAtPosition);
+
 		currentWord = word.substr(
 			0,
 			position.character - wordAtPosition.start.character,
@@ -861,7 +935,9 @@ function getKeywordCompletions(currentWord: string): vscode.CompletionItem[] {
 	if (!currentWord.length) {
 		return [];
 	}
+
 	const completionItems: vscode.CompletionItem[] = [];
+
 	goKeywords.forEach((keyword) => {
 		if (keyword.startsWith(currentWord)) {
 			completionItems.push(
@@ -915,23 +991,30 @@ function getPackageCompletions(
 				pkgName,
 				vscode.CompletionItemKind.Keyword,
 			);
+
 			item.detail = pkgPath;
+
 			item.documentation = "Imports the package";
+
 			item.insertText = pkgName;
+
 			item.command = {
 				title: "Import Package",
 				command: "go.import.add",
 				arguments: [{ importPath: pkgPath, from: "completion" }],
 			};
+
 			item.kind = vscode.CompletionItemKind.Module;
 
 			// Unimported packages should appear after the suggestions from gocode
 			const isStandardPackage = !item.detail.includes(".");
+
 			item.sortText = isStandardPackage
 				? "za"
 				: pkgPath.startsWith(currentPkgRootPath)
 					? "zb"
 					: "zc";
+
 			completionItems.push(item);
 		}
 	});
@@ -953,7 +1036,9 @@ async function getPackageStatementCompletions(
 
 	const suggestions = pkgNames.map((pkgName) => {
 		const packageItem = new vscode.CompletionItem("package " + pkgName);
+
 		packageItem.kind = vscode.CompletionItemKind.Snippet;
+
 		packageItem.insertText = "package " + pkgName + "\r\n\r\n";
 
 		return packageItem;

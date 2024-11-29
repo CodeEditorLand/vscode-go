@@ -39,6 +39,7 @@ export class GoCodeActionProvider implements vscode.CodeActionProvider {
 					return commands;
 				});
 			}
+
 			return [];
 		});
 
@@ -50,11 +51,13 @@ export class GoCodeActionProvider implements vscode.CodeActionProvider {
 					results[item.title] = item;
 				}
 			}
+
 			const ret = [];
 
 			for (const title of Object.keys(results).sort()) {
 				ret.push(results[title]);
 			}
+
 			return ret;
 		});
 	}

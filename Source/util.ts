@@ -87,7 +87,9 @@ export const goBuiltinTypes: Set<string> = new Set<string>([
 
 export class GoVersion {
 	public sv: semver.SemVer;
+
 	public isDevel: boolean;
+
 	private commit: string;
 
 	constructor(version: string) {
@@ -101,8 +103,10 @@ export class GoVersion {
 			this.sv = semver.coerce(matchesRelease[0]);
 		} else if (matchesDevel) {
 			this.isDevel = true;
+
 			this.commit = matchesDevel[0];
 		}
+
 		sendTelemetryEventForGoVersion(this.format());
 	}
 
@@ -110,6 +114,7 @@ export class GoVersion {
 		if (this.sv) {
 			return this.sv.format();
 		}
+
 		return `devel +${this.commit}`;
 	}
 
@@ -119,6 +124,7 @@ export class GoVersion {
 		if (this.isDevel || !this.sv) {
 			return false;
 		}
+
 		return semver.lt(this.sv, semver.coerce(version));
 	}
 
@@ -128,6 +134,7 @@ export class GoVersion {
 		if (this.isDevel || !this.sv) {
 			return true;
 		}
+
 		return semver.gt(this.sv, semver.coerce(version));
 	}
 }
@@ -146,6 +153,7 @@ export function getGoConfig(uri?: vscode.Uri): vscode.WorkspaceConfiguration {
 			uri = null;
 		}
 	}
+
 	return vscode.workspace.getConfiguration("go", uri);
 }
 
@@ -163,10 +171,14 @@ export function byteOffsetAt(
 export interface Prelude {
 	imports: Array<{
 		kind: string;
+
 		start: number;
+
 		end: number;
+
 		pkgs: string[];
 	}>;
+
 	pkg: { start: number; end: number; name: string };
 }
 
@@ -183,6 +195,7 @@ export function parseFilePrelude(text: string): Prelude {
 		if (pkgMatch) {
 			ret.pkg = { start: i, end: i, name: pkgMatch[3] };
 		}
+
 		if (line.match(/^(\s)*import(\s)+\(/)) {
 			ret.imports.push({ kind: "multi", start: i, end: -1, pkgs: [] });
 		} else if (line.match(/^\s*import\s+"C"/)) {
@@ -190,6 +203,7 @@ export function parseFilePrelude(text: string): Prelude {
 		} else if (line.match(/^(\s)*import(\s)+[^\(]/)) {
 			ret.imports.push({ kind: "single", start: i, end: i, pkgs: [] });
 		}
+
 		if (line.match(/^(\s)*(\/\*.*\*\/)*\s*\)/)) {
 			// /* comments */
 			if (ret.imports[ret.imports.length - 1].end === -1) {
@@ -211,6 +225,7 @@ export function parseFilePrelude(text: string): Prelude {
 			break;
 		}
 	}
+
 	return ret;
 }
 
@@ -245,6 +260,7 @@ export function getParametersAndReturnType(signature: string): {
 					if (i > lastStart) {
 						params.push(signature.substring(lastStart, i));
 					}
+
 					return {
 						params,
 						returnType:
@@ -253,16 +269,20 @@ export function getParametersAndReturnType(signature: string): {
 								: "",
 					};
 				}
+
 				break;
 
 			case ",":
 				if (parenCount === 0) {
 					params.push(signature.substring(lastStart, i));
+
 					lastStart = i + 2;
 				}
+
 				break;
 		}
 	}
+
 	return { params: [], returnType: "" };
 }
 
@@ -272,6 +292,7 @@ export function canonicalizeGOPATHPrefix(filename: string): string {
 	if (!gopath) {
 		return filename;
 	}
+
 	const workspaces = gopath.split(path.delimiter);
 
 	const filenameLowercase = filename.toLowerCase();
@@ -296,6 +317,7 @@ export function canonicalizeGOPATHPrefix(filename: string): string {
 	if (!currentWorkspace) {
 		return filename;
 	}
+
 	return currentWorkspace + filename.slice(currentWorkspace.length);
 }
 
@@ -322,11 +344,13 @@ export function getUserNameHash() {
 	if (userNameHash) {
 		return userNameHash;
 	}
+
 	try {
 		userNameHash = getStringHash(os.userInfo().username);
 	} catch (error) {
 		userNameHash = 1;
 	}
+
 	return userNameHash;
 }
 
@@ -344,11 +368,13 @@ export async function getGoVersion(): Promise<GoVersion> {
 
 		return Promise.resolve(null);
 	}
+
 	if (cachedGoVersion && (cachedGoVersion.sv || cachedGoVersion.isDevel)) {
 		sendTelemetryEventForGoVersion(cachedGoVersion.format());
 
 		return Promise.resolve(cachedGoVersion);
 	}
+
 	return new Promise<GoVersion>((resolve) => {
 		cp.execFile(goRuntimePath, ["version"], {}, (err, stdout, stderr) => {
 			cachedGoVersion = new GoVersion(stdout);
@@ -365,6 +391,7 @@ export async function getGoVersion(): Promise<GoVersion> {
 					);
 				}
 			}
+
 			return resolve(cachedGoVersion);
 		});
 	});
@@ -377,11 +404,13 @@ export async function isVendorSupported(): Promise<boolean> {
 	if (vendorSupport != null) {
 		return Promise.resolve(vendorSupport);
 	}
+
 	const goVersion = await getGoVersion();
 
 	if (!goVersion.sv) {
 		return process.env["GO15VENDOREXPERIMENT"] === "0" ? false : true;
 	}
+
 	switch (goVersion.sv.major) {
 		case 0:
 			vendorSupport = false;
@@ -403,6 +432,7 @@ export async function isVendorSupported(): Promise<boolean> {
 
 			break;
 	}
+
 	return vendorSupport;
 }
 
@@ -455,6 +485,7 @@ export function getToolsGopath(useCache: boolean = true): string {
 	if (!useCache || !toolsGopath) {
 		toolsGopath = resolveToolsGopath();
 	}
+
 	return toolsGopath;
 }
 
@@ -472,12 +503,14 @@ function resolveToolsGopath(): string {
 	}
 
 	// In case of multi-root, resolve ~ and ${workspaceFolder}
+
 	if (toolsGopathForWorkspace.startsWith("~")) {
 		toolsGopathForWorkspace = path.join(
 			os.homedir(),
 			toolsGopathForWorkspace.substr(1),
 		);
 	}
+
 	if (
 		toolsGopathForWorkspace &&
 		toolsGopathForWorkspace.trim() &&
@@ -491,6 +524,7 @@ function resolveToolsGopath(): string {
 		let toolsGopathFromConfig = <string>(
 			getGoConfig(folder.uri).inspect("toolsGopath").workspaceFolderValue
 		);
+
 		toolsGopathFromConfig = resolvePath(
 			toolsGopathFromConfig,
 			folder.uri.fsPath,
@@ -594,6 +628,7 @@ export function getCurrentGoPath(workspaceUri?: vscode.Uri): string {
 				// No op
 			}
 		}
+
 		if (
 			inferredGopath &&
 			process.env["GOPATH"] &&
@@ -606,6 +641,7 @@ export function getCurrentGoPath(workspaceUri?: vscode.Uri): string {
 	const configGopath = config["gopath"]
 		? resolvePath(substituteEnv(config["gopath"]), currentRoot)
 		: "";
+
 	currentGopath = inferredGopath
 		? inferredGopath
 		: configGopath || process.env["GOPATH"];
@@ -625,6 +661,7 @@ export function getExtensionCommands(): any[] {
 	if (!pkgJSON.contributes || !pkgJSON.contributes.commands) {
 		return;
 	}
+
 	const extensionCommands: any[] = vscode.extensions
 		.getExtension(extensionId)
 		.packageJSON.contributes.commands.filter(
@@ -636,7 +673,9 @@ export function getExtensionCommands(): any[] {
 
 export class LineBuffer {
 	private buf: string = "";
+
 	private lineListeners: { (line: string): void }[] = [];
+
 	private lastListeners: { (last: string): void }[] = [];
 
 	public append(chunk: string) {
@@ -650,6 +689,7 @@ export class LineBuffer {
 			}
 
 			this.fireLine(this.buf.substring(0, idx));
+
 			this.buf = this.buf.substring(idx + 1);
 		} while (true);
 	}
@@ -705,6 +745,7 @@ export function resolvePath(
 			workspaceFolder,
 		);
 	}
+
 	return resolveHomeDir(inputPath);
 }
 
@@ -764,6 +805,7 @@ export function guessPackageNameFromFile(filePath: string): Promise<string[]> {
 		const dirName = path.basename(directoryPath);
 
 		let segments = dirName.split(/[\.-]/);
+
 		segments = segments.filter((val) => val !== "go");
 
 		if (
@@ -791,9 +833,13 @@ export function guessPackageNameFromFile(filePath: string): Promise<string[]> {
 
 export interface ICheckResult {
 	file: string;
+
 	line: number;
+
 	col: number;
+
 	msg: string;
+
 	severity: string;
 }
 
@@ -830,6 +876,7 @@ export function runTool(
 				),
 			);
 		}
+
 		cmd = goRuntimePath;
 	}
 
@@ -842,6 +889,7 @@ export function runTool(
 			}
 		});
 	}
+
 	cwd = fixDriveCasingInWindows(cwd);
 
 	return new Promise((resolve, reject) => {
@@ -854,17 +902,21 @@ export function runTool(
 
 					return resolve([]);
 				}
+
 				if (err && stderr && !useStdErr) {
 					outputChannel.appendLine(
 						["Error while running tool:", cmd, ...args].join(" "),
 					);
+
 					outputChannel.appendLine(stderr);
 
 					return resolve([]);
 				}
+
 				const lines = (useStdErr ? stderr : stdout)
 					.toString()
 					.split("\n");
+
 				outputChannel.appendLine(
 					[cwd + ">Finished running tool:", cmd, ...args].join(" "),
 				);
@@ -881,6 +933,7 @@ export function runTool(
 
 						continue;
 					}
+
 					const match =
 						/^([^:]*: )?((.:)?[^:]*):(\d+)(:(\d+)?)?:(?:\w+:)? (.*)$/.exec(
 							l,
@@ -890,8 +943,10 @@ export function runTool(
 						if (printUnexpectedOutput && useStdErr && stderr) {
 							unexpectedOutput = true;
 						}
+
 						continue;
 					}
+
 					atLeastSingleMatch = true;
 
 					const [, , file, , lineStr, , colStr, msg] = match;
@@ -912,9 +967,12 @@ export function runTool(
 					}
 
 					const filePath = path.resolve(cwd, file);
+
 					ret.push({ file: filePath, line, col, msg, severity });
+
 					outputChannel.appendLine(`${filePath}:${line}: ${msg}`);
 				}
+
 				if (
 					!atLeastSingleMatch &&
 					unexpectedOutput &&
@@ -933,7 +991,9 @@ export function runTool(
 						});
 					}
 				}
+
 				outputChannel.appendLine("");
+
 				resolve(ret);
 			} catch (e) {
 				reject(e);
@@ -950,6 +1010,7 @@ export function handleDiagnosticErrors(
 	diagnosticCollection.clear();
 
 	const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
+
 	errors.forEach((error) => {
 		const canonicalFile = vscode.Uri.file(error.file).toString();
 
@@ -974,8 +1035,10 @@ export function handleDiagnosticErrors(
 			} else {
 				startColumn = error.col - 1; // range is 0-indexed
 			}
+
 			endColumn = text.length - trailing.length;
 		}
+
 		const range = new vscode.Range(
 			error.line - 1,
 			startColumn,
@@ -986,6 +1049,7 @@ export function handleDiagnosticErrors(
 		const severity = mapSeverityToVSCodeSeverity(error.severity);
 
 		const diagnostic = new vscode.Diagnostic(range, error.msg, severity);
+
 		diagnostic.source = diagnosticCollection.name;
 
 		let diagnostics = diagnosticMap.get(canonicalFile);
@@ -993,7 +1057,9 @@ export function handleDiagnosticErrors(
 		if (!diagnostics) {
 			diagnostics = [];
 		}
+
 		diagnostics.push(diagnostic);
+
 		diagnosticMap.set(canonicalFile, diagnostics);
 	});
 
@@ -1028,6 +1094,7 @@ export function handleDiagnosticErrors(
 				newDiagnostics,
 			);
 		}
+
 		diagnosticCollection.set(fileUri, newDiagnostics);
 	});
 }
@@ -1145,6 +1212,7 @@ export function rmdirRecursive(dir: string) {
 				fs.unlinkSync(relPath);
 			}
 		});
+
 		fs.rmdirSync(dir);
 	}
 }
@@ -1171,6 +1239,7 @@ export function cleanupTempDir() {
 	if (tmpDir) {
 		rmdirRecursive(tmpDir);
 	}
+
 	tmpDir = undefined;
 }
 
@@ -1191,6 +1260,7 @@ export function runGodoc(
 	if (!packagePath) {
 		return Promise.reject(new Error("Package Path not provided"));
 	}
+
 	if (!symbol) {
 		return Promise.reject(new Error("Symbol not provided"));
 	}
@@ -1213,6 +1283,7 @@ export function runGodoc(
 		return new Promise<string>((resolve, reject) => {
 			if (receiver) {
 				receiver = receiver.replace(/^\*/, "");
+
 				symbol = receiver + "." + symbol;
 			}
 
@@ -1228,6 +1299,7 @@ export function runGodoc(
 					if (err) {
 						return reject(err.message || stderr);
 					}
+
 					let doc = "";
 
 					const godocLines = stdout.split("\n");
@@ -1262,6 +1334,7 @@ export function runGodoc(
 							doc += "\n";
 						}
 					}
+
 					return resolve(doc);
 				},
 			);
@@ -1298,5 +1371,6 @@ export function isPositionInComment(
 
 		return !isCommentInString;
 	}
+
 	return false;
 }

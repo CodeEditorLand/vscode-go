@@ -24,6 +24,7 @@ export function sendTelemetryEventForModulesUsage() {
 
 export function sendTelemetryEventForAddImportCmd(arg: {
 	importPath: string;
+
 	from: string;
 }) {
 	/* __GDPR__
@@ -197,6 +198,7 @@ export function disposeTelemetryReporter(): Promise<any> {
 	if (telemtryReporter) {
 		return telemtryReporter.dispose();
 	}
+
 	return Promise.resolve(null);
 }
 
@@ -210,8 +212,10 @@ function sendTelemetryEvent(
 	if (!aiKey) {
 		return; // cannot enable telemetry
 	}
+
 	telemtryReporter = telemtryReporter
 		? telemtryReporter
 		: new TelemetryReporter(extensionId, extensionVersion, aiKey);
+
 	telemtryReporter.sendTelemetryEvent(eventName, properties, measures);
 }

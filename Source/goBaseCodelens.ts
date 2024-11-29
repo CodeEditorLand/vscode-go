@@ -9,6 +9,7 @@ export abstract class GoBaseCodeLensProvider
 	implements vscode.CodeLensProvider
 {
 	protected enabled: boolean = true;
+
 	private onDidChangeCodeLensesEmitter = new vscode.EventEmitter<void>();
 
 	public get onDidChangeCodeLenses(): vscode.Event<void> {
@@ -18,6 +19,7 @@ export abstract class GoBaseCodeLensProvider
 	public setEnabled(enabled: false): void {
 		if (this.enabled !== enabled) {
 			this.enabled = enabled;
+
 			this.onDidChangeCodeLensesEmitter.fire();
 		}
 	}

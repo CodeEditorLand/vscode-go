@@ -18,18 +18,27 @@ let gutterSvgs: { [key: string]: string };
 
 let decorators: {
 	type: string;
+
 	coveredGutterDecorator: vscode.TextEditorDecorationType;
+
 	uncoveredGutterDecorator: vscode.TextEditorDecorationType;
+
 	coveredHighlightDecorator: vscode.TextEditorDecorationType;
+
 	uncoveredHighlightDecorator: vscode.TextEditorDecorationType;
 };
 
 let decoratorConfig: {
 	[key: string]: any;
+
 	type: string;
+
 	coveredHighlightColor: string;
+
 	uncoveredHighlightColor: string;
+
 	coveredGutterStyle: string;
+
 	uncoveredGutterStyle: string;
 };
 // a list of modified, unsaved go files with actual code edits (rather than comment edits)
@@ -71,6 +80,7 @@ export function initCoverageDecorators(ctx: vscode.ExtensionContext) {
 				vscode.ConfigurationTarget.Global,
 			);
 		}
+
 		if (typeof inspectResult.workspaceValue === "string") {
 			goConfig.update(
 				"coverageDecorator",
@@ -78,6 +88,7 @@ export function initCoverageDecorators(ctx: vscode.ExtensionContext) {
 				vscode.ConfigurationTarget.Workspace,
 			);
 		}
+
 		if (typeof inspectResult.workspaceFolderValue === "string") {
 			goConfig.update(
 				"coverageDecorator",
@@ -116,12 +127,15 @@ export function updateCodeCoverageDecorators(coverageDecoratorConfig: any) {
 			}
 		}
 	}
+
 	setDecorators();
+
 	vscode.window.visibleTextEditors.forEach(applyCodeCoverage);
 }
 
 function setDecorators() {
 	disposeDecorators();
+
 	decorators = {
 		type: decoratorConfig.type,
 		coveredGutterDecorator: vscode.window.createTextEditorDecorationType({
@@ -148,14 +162,18 @@ function setDecorators() {
 function disposeDecorators() {
 	if (decorators) {
 		decorators.coveredGutterDecorator.dispose();
+
 		decorators.uncoveredGutterDecorator.dispose();
+
 		decorators.coveredHighlightDecorator.dispose();
+
 		decorators.uncoveredHighlightDecorator.dispose();
 	}
 }
 
 interface CoverageData {
 	uncoveredRange: vscode.Range[];
+
 	coveredRange: vscode.Range[];
 }
 
@@ -168,7 +186,9 @@ let isCoverageApplied: boolean = false;
  */
 function clearCoverage() {
 	coverageFiles = {};
+
 	disposeDecorators();
+
 	isCoverageApplied = false;
 }
 
@@ -226,15 +246,20 @@ export function applyCodeCoverageToAllEditors(
 				} else {
 					coverage.uncoveredRange.push(range);
 				}
+
 				setCoverageData(filePath, coverage);
 			});
+
 			lines.on("close", () => {
 				setDecorators();
+
 				vscode.window.visibleTextEditors.forEach(applyCodeCoverage);
+
 				resolve();
 			});
 		} catch (e) {
 			vscode.window.showInformationMessage(e.msg);
+
 			reject(e);
 		}
 	});
@@ -248,6 +273,7 @@ function getCoverageData(filePath: string): CoverageData {
 	if (filePath.startsWith("_")) {
 		filePath = filePath.substr(1);
 	}
+
 	if (process.platform === "win32") {
 		const parts = filePath.split("/");
 
@@ -255,6 +281,7 @@ function getCoverageData(filePath: string): CoverageData {
 			filePath = parts.join(path.sep);
 		}
 	}
+
 	return coverageFiles[filePath] || { coveredRange: [], uncoveredRange: [] };
 }
 
@@ -267,6 +294,7 @@ function setCoverageData(filePath: string, data: CoverageData) {
 	if (filePath.startsWith("_")) {
 		filePath = filePath.substr(1);
 	}
+
 	if (process.platform === "win32") {
 		const parts = filePath.split("/");
 
@@ -274,6 +302,7 @@ function setCoverageData(filePath: string, data: CoverageData) {
 			filePath = parts.join(path.sep);
 		}
 	}
+
 	coverageFiles[filePath] = data;
 }
 
@@ -348,6 +377,7 @@ export function removeCodeCoverageOnFileSave(e: vscode.TextDocument) {
 
 	if (modifiedFiles[e.fileName]) {
 		clearCoverage();
+
 		modifiedFiles = {}; // reset the list of modified files
 	}
 }

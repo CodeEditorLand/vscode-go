@@ -29,6 +29,7 @@ function checkActiveEditor(): vscode.TextEditor | undefined {
 
 		return;
 	}
+
 	if (!editor.document.fileName.endsWith(".go")) {
 		vscode.window.showInformationMessage(
 			"Cannot generate unit tests. File in the editor is not a Go file.",
@@ -36,6 +37,7 @@ function checkActiveEditor(): vscode.TextEditor | undefined {
 
 		return;
 	}
+
 	if (editor.document.isDirty) {
 		vscode.window.showInformationMessage(
 			"File has unsaved changes. Save and try again.",
@@ -43,6 +45,7 @@ function checkActiveEditor(): vscode.TextEditor | undefined {
 
 		return;
 	}
+
 	return editor;
 }
 
@@ -59,6 +62,7 @@ export function toggleTestFile(): void {
 
 		return;
 	}
+
 	const currentFilePath = editor.document.fileName;
 
 	if (!currentFilePath.endsWith(".go")) {
@@ -68,6 +72,7 @@ export function toggleTestFile(): void {
 
 		return;
 	}
+
 	let targetFilePath = "";
 
 	if (currentFilePath.endsWith("_test.go")) {
@@ -79,6 +84,7 @@ export function toggleTestFile(): void {
 			currentFilePath.substr(0, currentFilePath.lastIndexOf(".go")) +
 			"_test.go";
 	}
+
 	for (const doc of vscode.window.visibleTextEditors) {
 		if (doc.document.fileName === targetFilePath) {
 			vscode.commands.executeCommand(
@@ -90,6 +96,7 @@ export function toggleTestFile(): void {
 			return;
 		}
 	}
+
 	vscode.commands.executeCommand(
 		"vscode.open",
 		vscode.Uri.file(targetFilePath),
@@ -102,6 +109,7 @@ export function generateTestCurrentPackage(): Promise<boolean> {
 	if (!editor) {
 		return;
 	}
+
 	return generateTests(
 		{
 			dir: path.dirname(editor.document.uri.fsPath),
@@ -147,6 +155,7 @@ export async function generateTestCurrentFunction(): Promise<boolean> {
 
 		return Promise.resolve(false);
 	}
+
 	let funcName = currentFunction.name;
 
 	const funcNameParts = funcName.match(/^\(\*?(.*)\)\.(.*)$/);
@@ -156,6 +165,7 @@ export async function generateTestCurrentFunction(): Promise<boolean> {
 		const rType = funcNameParts[1].replace(/^\w/, (c) => c.toUpperCase());
 
 		const fName = funcNameParts[2].replace(/^\w/, (c) => c.toUpperCase());
+
 		funcName = rType + fName;
 	}
 
@@ -206,11 +216,13 @@ function generateTests(
 			if (flag === "-w" || flag === "all") {
 				continue;
 			}
+
 			if (flag === "-only") {
 				i++;
 
 				continue;
 			}
+
 			args.push(flag);
 		}
 
@@ -235,8 +247,10 @@ function generateTests(
 
 						return resolve(false);
 					}
+
 					if (err) {
 						console.log(err);
+
 						outputChannel.appendLine(err.message);
 
 						return reject("Cannot generate test due to errors");
@@ -256,11 +270,14 @@ function generateTests(
 							.map((element) => {
 								return element.substr(generatedWord.length);
 							});
+
 						message = `Generated ${lines.join(", ")}`;
+
 						testsGenerated = true;
 					}
 
 					vscode.window.showInformationMessage(message);
+
 					outputChannel.append(message);
 
 					if (testsGenerated && !conf.isTestFile) {
@@ -270,7 +287,9 @@ function generateTests(
 					return resolve(true);
 				} catch (e) {
 					vscode.window.showInformationMessage(e.msg);
+
 					outputChannel.append(e.msg);
+
 					reject(e);
 				}
 			},

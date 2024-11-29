@@ -39,6 +39,7 @@ async function extract(type: typeOfExtraction): Promise<void> {
 
 		return;
 	}
+
 	if (activeEditor.selections.length !== 1) {
 		vscode.window.showInformationMessage(
 			`You need to have a single selection for extracting ${type === "var" ? "variable" : "method"}`,

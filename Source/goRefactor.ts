@@ -17,6 +17,7 @@ export class GoRefactorProvider implements vscode.CodeActionProvider {
 		if (range.isEmpty) {
 			return [];
 		}
+
 		const extractFunction = new vscode.CodeAction(
 			"Extract to function in package scope",
 			vscode.CodeActionKind.RefactorExtract,
@@ -26,10 +27,12 @@ export class GoRefactorProvider implements vscode.CodeActionProvider {
 			"Extract to variable in local scope",
 			vscode.CodeActionKind.RefactorExtract,
 		);
+
 		extractFunction.command = {
 			title: "Extract to function in package scope",
 			command: "go.godoctor.extract",
 		};
+
 		extractVar.command = {
 			title: "Extract to variable in local scope",
 			command: "go.godoctor.var",

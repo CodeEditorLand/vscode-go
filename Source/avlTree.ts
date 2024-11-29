@@ -33,7 +33,9 @@
  */
 export class Node<K, V> {
 	public left: Node<K, V> = null;
+
 	public right: Node<K, V> = null;
+
 	public height: number = null;
 
 	/**
@@ -55,6 +57,7 @@ export class Node<K, V> {
 		if (!this.left) {
 			return -1;
 		}
+
 		return this.left.height;
 	}
 
@@ -67,6 +70,7 @@ export class Node<K, V> {
 		if (!this.right) {
 			return -1;
 		}
+
 		return this.right.height;
 	}
 
@@ -81,9 +85,13 @@ export class Node<K, V> {
 		//  / \                             / \
 		// c   d                           d   e
 		const other = this.left;
+
 		this.left = other.right;
+
 		other.right = this;
+
 		this.height = Math.max(this.leftHeight, this.rightHeight) + 1;
+
 		other.height = Math.max(other.leftHeight, this.height) + 1;
 
 		return other;
@@ -100,9 +108,13 @@ export class Node<K, V> {
 		//    / \                        / \
 		//   d   e                      c   d
 		const other = this.right;
+
 		this.right = other.left;
+
 		other.left = this;
+
 		this.height = Math.max(this.leftHeight, this.rightHeight) + 1;
+
 		other.height = Math.max(other.rightHeight, this.height) + 1;
 
 		return other;
@@ -132,6 +144,7 @@ const enum BalanceState {
 export class NearestNeighborDict<K, V> {
 	public static NUMERIC_DISTANCE_FUNCTION = (a: number, b: number) =>
 		a > b ? a - b : b - a;
+
 	public static DEFAULT_COMPARE_FUNCTION = (a: any, b: any) =>
 		a > b ? 1 : a < b ? -1 : 0;
 
@@ -291,6 +304,7 @@ export class NearestNeighborDict<K, V> {
 				if (heightDifference > 0) {
 					return BalanceState.UNBALANCED_LEFT;
 				}
+
 				if (heightDifference < 0) {
 					return BalanceState.UNBALANCED_RIGHT;
 				}

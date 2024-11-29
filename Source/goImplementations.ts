@@ -23,21 +23,29 @@ import vscode = require("vscode");
 
 interface GoListOutput {
 	Dir: string;
+
 	ImportPath: string;
+
 	Root: string;
 }
 
 interface GuruImplementsRef {
 	name: string;
+
 	pos: string;
+
 	kind: string;
 }
 
 interface GuruImplementsOutput {
 	type: GuruImplementsRef;
+
 	to: GuruImplementsRef[];
+
 	to_method: GuruImplementsRef[];
+
 	from: GuruImplementsRef[];
+
 	fromptr: GuruImplementsRef[];
 }
 
@@ -73,6 +81,7 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 			if (token.isCancellationRequested) {
 				return resolve(null);
 			}
+
 			const env = getToolsEnvVars();
 
 			const listProcess = cp.execFile(
@@ -83,6 +92,7 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 					if (err) {
 						return reject(err);
 					}
+
 					const listOutput = <GoListOutput>(
 						JSON.parse(stdout.toString())
 					);
@@ -104,6 +114,7 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 					if (listOutput.Root && listOutput.ImportPath) {
 						args.push("-scope", `${listOutput.ImportPath}/...`);
 					}
+
 					args.push(
 						"-json",
 						"implements",
@@ -140,6 +151,7 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 									if (!match) {
 										return;
 									}
+
 									const [_, file, lineStartStr, colStartStr] =
 										match;
 
@@ -153,6 +165,7 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 										+lineStartStr - 1,
 										+colStartStr,
 									);
+
 									results.push(
 										new vscode.Location(
 											referenceResource,
@@ -176,11 +189,13 @@ export class GoImplementationProvider implements vscode.ImplementationProvider {
 							return resolve(results);
 						},
 					);
+
 					token.onCancellationRequested(() =>
 						killTree(guruProcess.pid),
 					);
 				},
 			);
+
 			token.onCancellationRequested(() => killTree(listProcess.pid));
 		});
 	}

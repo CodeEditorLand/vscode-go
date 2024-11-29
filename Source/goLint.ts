@@ -32,6 +32,7 @@ export function lintCode(scope?: string) {
 
 		return;
 	}
+
 	if (editor.document.languageId !== "go" && scope !== "workspace") {
 		vscode.window.showInformationMessage(
 			"File in the active editor is not a Go file, cannot find current package to lint",
@@ -46,6 +47,7 @@ export function lintCode(scope?: string) {
 
 	outputChannel.clear(); // Ensures stale output from lint on save is cleared
 	diagnosticsStatusBarItem.show();
+
 	diagnosticsStatusBarItem.text = "Linting...";
 
 	goLint(documentUri, goConfig, scope)
@@ -55,10 +57,12 @@ export function lintCode(scope?: string) {
 				warnings,
 				lintDiagnosticCollection,
 			);
+
 			diagnosticsStatusBarItem.hide();
 		})
 		.catch((err) => {
 			vscode.window.showInformationMessage("Error: " + err);
+
 			diagnosticsStatusBarItem.text = "Linting Failed";
 		});
 }
@@ -83,8 +87,10 @@ export function goLint(
 		if (running) {
 			tokenSource.cancel();
 		}
+
 		tokenSource.dispose();
 	}
+
 	tokenSource = new vscode.CancellationTokenSource();
 
 	const currentWorkspace = getWorkspaceFolderPath(fileUri);
@@ -111,19 +117,23 @@ export function goLint(
 		if (flag === "--json") {
 			return;
 		}
+
 		if (flag.startsWith("--config=") || flag.startsWith("-config=")) {
 			let configFilePath = flag.substr(flag.indexOf("=") + 1).trim();
 
 			if (!configFilePath) {
 				return;
 			}
+
 			configFilePath = resolvePath(configFilePath);
+
 			args.push(
 				`${flag.substr(0, flag.indexOf("=") + 1)}${configFilePath}`,
 			);
 
 			return;
 		}
+
 		args.push(flag);
 	});
 
@@ -131,20 +141,24 @@ export function goLint(
 		if (args.indexOf("--aggregate") === -1) {
 			args.push("--aggregate");
 		}
+
 		if (goConfig["toolsGopath"]) {
 			// gometalinter will expect its linters to be in the GOPATH
 			// So add the toolsGopath to GOPATH
 			lintEnv["GOPATH"] += path.delimiter + getToolsGopath();
 		}
 	}
+
 	if (lintTool === "golangci-lint") {
 		if (args.indexOf("run") === -1) {
 			args.unshift("run");
 		}
+
 		if (args.indexOf("--print-issued-lines=false") === -1) {
 			// print only file:number:column
 			args.push("--print-issued-lines=false");
 		}
+
 		if (args.indexOf("--out-format=colored-line-number") === -1) {
 			// print file:number:column.
 			// Explicit override in case .golangci.yml calls for a format we don't understand
@@ -154,11 +168,13 @@ export function goLint(
 
 	if (scope === "workspace" && currentWorkspace) {
 		args.push("./...");
+
 		outputChannel.appendLine(
 			`Starting linting the current workspace at ${currentWorkspace}`,
 		);
 	} else if (scope === "file") {
 		args.push(fileUri.fsPath);
+
 		outputChannel.appendLine(
 			`Starting linting the current file at ${fileUri.fsPath}`,
 		);
@@ -183,6 +199,7 @@ export function goLint(
 		if (closureEpoch === epoch) {
 			running = false;
 		}
+
 		return result;
 	});
 

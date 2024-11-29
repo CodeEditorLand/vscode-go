@@ -25,11 +25,13 @@ import vscode = require("vscode");
 type GopkgsDone = (res: Map<string, PackageInfo>) => void;
 interface Cache {
 	entry: Map<string, PackageInfo>;
+
 	lastHit: number;
 }
 
 export interface PackageInfo {
 	name: string;
+
 	isStd: boolean;
 }
 
@@ -73,9 +75,13 @@ function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 		const errchunks: any[] = [];
 
 		let err: any;
+
 		cmd.stdout.on("data", (d) => chunks.push(d));
+
 		cmd.stderr.on("data", (d) => errchunks.push(d));
+
 		cmd.on("error", (e) => (err = e));
+
 		cmd.on("close", () => {
 			const pkgs = new Map<string, PackageInfo>();
 
@@ -102,6 +108,7 @@ function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 
 				return resolve(pkgs);
 			}
+
 			const goroot = process.env["GOROOT"];
 
 			const output = chunks.join("");
@@ -109,14 +116,17 @@ function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 			if (output.indexOf(";") === -1) {
 				// User might be using the old gopkgs tool, prompt to update
 				promptForUpdatingTool("gopkgs");
+
 				output.split("\n").forEach((pkgPath) => {
 					if (!pkgPath || !pkgPath.trim()) {
 						return;
 					}
+
 					const index = pkgPath.lastIndexOf("/");
 
 					const pkgName =
 						index === -1 ? pkgPath : pkgPath.substr(index + 1);
+
 					pkgs.set(pkgPath, {
 						name: pkgName,
 						isStd: !pkgPath.includes("."),
@@ -125,6 +135,7 @@ function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 
 				return resolve(pkgs);
 			}
+
 			output.split("\n").forEach((pkgDetail) => {
 				if (
 					!pkgDetail ||
@@ -133,7 +144,9 @@ function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 				) {
 					return;
 				}
+
 				const [pkgName, pkgPath, pkgDir] = pkgDetail.trim().split(";");
+
 				pkgs.set(pkgPath, {
 					name: pkgName,
 					isStd: goroot === null ? false : pkgDir.startsWith(goroot),
@@ -141,7 +154,9 @@ function gopkgs(workDir?: string): Promise<Map<string, PackageInfo>> {
 			});
 
 			const timeTaken = Date.now() - t0;
+
 			sendTelemetryEventForGopkgs(timeTaken);
+
 			cacheTimeout = timeTaken > 5000 ? timeTaken : 5000;
 
 			return resolve(pkgs);
@@ -162,8 +177,10 @@ function getAllPackagesNoCache(
 
 		if (!subs) {
 			subs = [];
+
 			gopkgsSubscriptions.set(workDir, subs);
 		}
+
 		subs.push(callback);
 
 		// Ensure only single gokpgs running
@@ -172,7 +189,9 @@ function getAllPackagesNoCache(
 
 			gopkgs(workDir).then((pkgMap) => {
 				gopkgsRunning.delete(workDir);
+
 				gopkgsSubscriptions.delete(workDir);
+
 				subs.forEach((cb) => cb(pkgMap));
 			});
 		}
@@ -205,9 +224,11 @@ export async function getAllPackages(
 			vscode.window.showInformationMessage(
 				"Could not find packages. Ensure `gopkgs -format {{.Name}};{{.ImportPath}}` runs successfully.",
 			);
+
 			gopkgsNotified = true;
 		}
 	}
+
 	allPkgsCache.set(workDir, {
 		entry: pkgs,
 		lastHit: new Date().getTime(),
@@ -254,6 +275,7 @@ export function getImportablePackages(
 				getCurrentGoPath(),
 				fileDirPath,
 			);
+
 			pkgs.forEach((info, pkgPath) => {
 				if (info.name === "main") {
 					return;
@@ -276,6 +298,7 @@ export function getImportablePackages(
 								.substring(0, vendorIndex)
 								.replace("/", path.sep),
 						);
+
 						pkgRootDirs.set(fileDirPath, foundPkgRootDir);
 					}
 				}
@@ -348,6 +371,7 @@ function getRelativePackagePath(
 		) {
 			return relativePathForVendorPkg;
 		}
+
 		return "";
 	}
 
@@ -370,6 +394,7 @@ export function getNonVendorPackages(
 
 		return;
 	}
+
 	return new Promise<Map<string, string>>((resolve, reject) => {
 		const childProcess = cp.spawn(
 			goRuntimePath,
@@ -383,6 +408,7 @@ export function getNonVendorPackages(
 		);
 
 		const chunks: any[] = [];
+
 		childProcess.stdout.on("data", (stdout) => {
 			chunks.push(stdout);
 		});
@@ -402,6 +428,7 @@ export function getNonVendorPackages(
 				if (!matches || matches.length !== 3) {
 					return;
 				}
+
 				const [_, pkgPath, folderPath] = matches;
 
 				if (
@@ -410,8 +437,10 @@ export function getNonVendorPackages(
 				) {
 					return;
 				}
+
 				result.set(pkgPath, folderPath);
 			});
+
 			resolve(result);
 		});
 	});
@@ -445,5 +474,6 @@ function isAllowToImportPackage(
 			toDirPath === rootProjectForInternalPkg
 		);
 	}
+
 	return true;
 }

@@ -20,10 +20,15 @@ import vscode = require("vscode");
 // Keep in sync with github.com/acroca/go-symbols'
 interface GoSymbolDeclaration {
 	name: string;
+
 	kind: string;
+
 	package: string;
+
 	path: string;
+
 	line: number;
+
 	character: number;
 }
 
@@ -50,12 +55,14 @@ export class GoWorkspaceSymbolProvider
 			if (!decls) {
 				return;
 			}
+
 			for (const decl of decls) {
 				let kind: vscode.SymbolKind;
 
 				if (decl.kind !== "") {
 					kind = this.goKindToCodeKind[decl.kind];
 				}
+
 				const pos = new vscode.Position(decl.line, decl.character);
 
 				const symbolInfo = new vscode.SymbolInformation(
@@ -65,6 +72,7 @@ export class GoWorkspaceSymbolProvider
 					vscode.Uri.file(decl.path),
 					"",
 				);
+
 				symbols.push(symbolInfo);
 			}
 		};
@@ -87,6 +95,7 @@ export class GoWorkspaceSymbolProvider
 		return getWorkspaceSymbols(root, query, token, goConfig).then(
 			(results) => {
 				const symbols: vscode.SymbolInformation[] = [];
+
 				convertToCodeSymbols(results, symbols);
 
 				return symbols;
@@ -105,6 +114,7 @@ export function getWorkspaceSymbols(
 	if (!goConfig) {
 		goConfig = getGoConfig();
 	}
+
 	const gotoSymbolConfig = goConfig["gotoSymbol"];
 
 	const calls: Promise<GoSymbolDeclaration[]>[] = [];
@@ -124,6 +134,7 @@ export function getWorkspaceSymbols(
 		const goRoot = process.env["GOROOT"];
 
 		const gorootCall = callGoSymbols([...baseArgs, goRoot, query], token);
+
 		calls.push(gorootCall);
 	}
 
@@ -133,6 +144,7 @@ export function getWorkspaceSymbols(
 			if (err && (<any>err).code === "ENOENT") {
 				promptForMissingTool("go-symbols");
 			}
+
 			if (
 				err.message.startsWith("flag provided but not defined: -ignore")
 			) {
@@ -178,6 +190,7 @@ function callGoSymbols(
 				} else if (err) {
 					return reject(err);
 				}
+
 				const result = stdout.toString();
 
 				const decls = <GoSymbolDeclaration[]>JSON.parse(result);

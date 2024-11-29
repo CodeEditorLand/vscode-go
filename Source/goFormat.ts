@@ -67,6 +67,7 @@ export class GoDocumentFormattingEditProvider
 
 					return Promise.resolve([]);
 				}
+
 				if (err) {
 					console.log(err);
 
@@ -105,10 +106,15 @@ export class GoDocumentFormattingEditProvider
 
 			// Use spawn instead of exec to avoid maxBufferExceeded error
 			const p = cp.spawn(formatCommandBinPath, formatFlags, { env, cwd });
+
 			token.onCancellationRequested(() => !p.killed && killTree(p.pid));
+
 			p.stdout.setEncoding("utf8");
+
 			p.stdout.on("data", (data) => (stdout += data));
+
 			p.stderr.on("data", (data) => (stderr += data));
+
 			p.on("error", (err) => {
 				if (err && (<any>err).code === "ENOENT") {
 					promptForMissingTool(formatTool);
@@ -116,6 +122,7 @@ export class GoDocumentFormattingEditProvider
 					return reject();
 				}
 			});
+
 			p.on("close", (code) => {
 				if (code !== 0) {
 					return reject(stderr);
@@ -136,6 +143,7 @@ export class GoDocumentFormattingEditProvider
 				];
 
 				const timeTaken = Date.now() - t0;
+
 				sendTelemetryEventForFormatting(formatTool, timeTaken);
 
 				if (timeTaken > 750) {
@@ -143,6 +151,7 @@ export class GoDocumentFormattingEditProvider
 						`Formatting took too long(${timeTaken}ms). Format On Save feature could be aborted.`,
 					);
 				}
+
 				return resolve(textEdits);
 			});
 

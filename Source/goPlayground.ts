@@ -30,7 +30,9 @@ export const playgroundCommand = () => {
 	}
 
 	outputChannel.clear();
+
 	outputChannel.show();
+
 	outputChannel.appendLine("Upload to the Go Playground in progress...\n");
 
 	const selection = editor.selection;
@@ -38,6 +40,7 @@ export const playgroundCommand = () => {
 	const code = selection.isEmpty
 		? editor.document.getText()
 		: editor.document.getText(selection);
+
 	goPlay(code, getGoConfig(editor.document.uri).get("playground")).then(
 		(result) => {
 			outputChannel.append(result);
@@ -70,11 +73,13 @@ export function goPlay(
 
 					return reject();
 				}
+
 				if (err) {
 					return reject(
 						`Upload to the Go Playground failed.\n${stdout || stderr || err.message}`,
 					);
 				}
+
 				return resolve(
 					`Output from the Go Playground:
 ${stdout || stderr}

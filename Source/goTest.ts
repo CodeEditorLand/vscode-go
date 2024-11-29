@@ -47,6 +47,7 @@ export function testAtCursor(
 
 		return;
 	}
+
 	if (!editor.document.fileName.endsWith("_test.go")) {
 		vscode.window.showInformationMessage(
 			"No tests found. Current file is not a test file.",
@@ -165,17 +166,20 @@ async function debugTestAtCursor(
 	const flagsFromConfig = getTestFlags(goConfig);
 
 	let foundArgsFlag = false;
+
 	flagsFromConfig.forEach((x) => {
 		if (foundArgsFlag) {
 			args.push(x);
 
 			return;
 		}
+
 		if (x === "-args") {
 			foundArgsFlag = true;
 
 			return;
 		}
+
 		buildFlags.push(x);
 	});
 
@@ -248,6 +252,7 @@ export function testWorkspace(
 
 		return;
 	}
+
 	let workspaceUri = vscode.workspace.workspaceFolders[0].uri;
 
 	if (
@@ -272,6 +277,7 @@ export function testWorkspace(
 
 	isModSupported(workspaceUri).then((isMod) => {
 		testConfig.isMod = isMod;
+
 		goTest(testConfig).then(null, (err) => {
 			console.error(err);
 		});
@@ -296,6 +302,7 @@ export async function testCurrentFile(
 
 		return;
 	}
+
 	if (!editor.document.fileName.endsWith("_test.go")) {
 		vscode.window.showInformationMessage(
 			"No tests found. Current file is not a test file.",
@@ -347,6 +354,7 @@ export function testPrevious() {
 
 		return;
 	}
+
 	goTest(lastTestConfig).then(null, (err) => {
 		console.error(err);
 	});

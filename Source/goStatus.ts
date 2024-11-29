@@ -65,8 +65,12 @@ export function showGoStatus(
 		vscode.StatusBarAlignment.Right,
 		Number.MIN_VALUE,
 	);
+
 	statusBarEntry.text = `$(alert) ${message}`;
+
 	statusBarEntry.command = command;
+
 	statusBarEntry.tooltip = tooltip;
+
 	statusBarEntry.show();
 }

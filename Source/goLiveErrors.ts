@@ -17,6 +17,7 @@ import vscode = require("vscode");
 // Interface for settings configuration for adding and removing tags
 interface GoLiveErrorsConfig {
 	delay: number;
+
 	enabled: boolean;
 }
 
@@ -28,6 +29,7 @@ export function goLiveErrorsEnabled() {
 	if (goConfig === null || goConfig === undefined || !goConfig.enabled) {
 		return false;
 	}
+
 	const files = vscode.workspace.getConfiguration("files", null);
 
 	const autoSave = files["autoSave"];
@@ -42,6 +44,7 @@ export function goLiveErrorsEnabled() {
 	) {
 		return false;
 	}
+
 	return goConfig.enabled;
 }
 
@@ -51,9 +54,11 @@ export function parseLiveFile(e: vscode.TextDocumentChangeEvent) {
 	if (e.document.isUntitled) {
 		return;
 	}
+
 	if (e.document.languageId !== "go") {
 		return;
 	}
+
 	if (!goLiveErrorsEnabled()) {
 		return;
 	}
@@ -61,8 +66,10 @@ export function parseLiveFile(e: vscode.TextDocumentChangeEvent) {
 	if (runner != null) {
 		clearTimeout(runner);
 	}
+
 	runner = setTimeout(() => {
 		processFile(e);
+
 		runner = null;
 	}, getGoConfig(e.document.uri)["liveErrors"]["delay"]);
 }
@@ -125,10 +132,13 @@ async function processFile(e: vscode.TextDocumentChangeEvent) {
 					message,
 					vscode.DiagnosticSeverity.Error,
 				);
+
 				diagnostic.source = "go";
 
 				const diagnostics = diagnosticMap.get(canonicalFilePath) || [];
+
 				diagnostics.push(diagnostic);
+
 				diagnosticMap.set(canonicalFilePath, diagnostics);
 			});
 

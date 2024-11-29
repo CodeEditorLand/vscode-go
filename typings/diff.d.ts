@@ -6,29 +6,41 @@
 declare namespace JsDiff {
 	interface IDiffResult {
 		value: string;
+
 		count?: number;
+
 		added?: boolean;
+
 		removed?: boolean;
 	}
 
 	interface IBestPath {
 		newPos: number;
+
 		componenets: IDiffResult[];
 	}
 
 	interface IHunk {
 		oldStart: number;
+
 		oldLines: number;
+
 		newStart: number;
+
 		newLines: number;
+
 		lines: string[];
 	}
 
 	interface IUniDiff {
 		oldFileName: string;
+
 		newFileName: string;
+
 		oldHeader: string;
+
 		newHeader: string;
+
 		hunks: IHunk[];
 	}
 
@@ -113,7 +125,9 @@ declare namespace JsDiff {
 				index: number,
 				callback: (err: Error, data: string) => void,
 			) => void;
+
 			patched: (index: number, content: string) => void;
+
 			complete: (err?: Error) => void;
 		},
 	): void;

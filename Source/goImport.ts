@@ -38,10 +38,12 @@ export async function listPackages(
 	const stdLibs: string[] = [];
 
 	const nonStdLibs: string[] = [];
+
 	pkgMap.forEach((value, key) => {
 		if (importedPkgs.some((imported) => imported === key)) {
 			return;
 		}
+
 		if (value.isStd) {
 			stdLibs.push(key);
 		} else {
@@ -140,12 +142,14 @@ export function getTextEditForAddImport(arg: string): vscode.TextEdit[] {
 				'import (\n\t"' + arg + '"\n',
 			),
 		);
+
 		minusCgo.forEach((element) => {
 			const currentLine = vscode.window.activeTextEditor.document.lineAt(
 				element.start,
 			).text;
 
 			const updatedLine = currentLine.replace(/^\s*import\s*/, "\t");
+
 			edits.push(
 				vscode.TextEdit.replace(
 					new vscode.Range(
@@ -158,6 +162,7 @@ export function getTextEditForAddImport(arg: string): vscode.TextEdit[] {
 				),
 			);
 		});
+
 		edits.push(
 			vscode.TextEdit.insert(
 				new vscode.Position(minusCgo[minusCgo.length - 1].end + 1, 0),
@@ -190,21 +195,26 @@ export function addImport(arg: { importPath: string; from: string }) {
 
 		return;
 	}
+
 	const p =
 		arg && arg.importPath
 			? Promise.resolve(arg.importPath)
 			: askUserForImport();
+
 	p.then((imp) => {
 		if (!imp) {
 			return;
 		}
+
 		sendTelemetryEventForAddImportCmd(arg);
 
 		const edits = getTextEditForAddImport(imp);
 
 		if (edits && edits.length > 0) {
 			const edit = new vscode.WorkspaceEdit();
+
 			edit.set(editor.document.uri, edits);
+
 			vscode.workspace.applyEdit(edit);
 		}
 	});
@@ -220,6 +230,7 @@ export function addImportToWorkspace() {
 
 		return;
 	}
+
 	const selection = editor.selection;
 
 	let importPath = "";
@@ -233,10 +244,12 @@ export function addImportToWorkspace() {
 				if (!selectedText.startsWith('"')) {
 					selectedText = '"' + selectedText;
 				}
+
 				if (!selectedText.endsWith('"')) {
 					selectedText = selectedText + '"';
 				}
 			}
+
 			importPath = getImportPath(selectedText);
 		}
 	}
@@ -263,6 +276,7 @@ export function addImportToWorkspace() {
 
 		return;
 	}
+
 	const env = getToolsEnvVars();
 
 	cp.execFile(

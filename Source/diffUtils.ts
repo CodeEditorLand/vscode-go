@@ -20,9 +20,11 @@ export function isDiffToolAvailable(): boolean {
 		if (!envPath) {
 			return false;
 		}
+
 		diffToolAvailable =
 			getBinPathFromEnvVar("diff", envPath, false) != null;
 	}
+
 	return diffToolAvailable;
 }
 
@@ -34,13 +36,18 @@ export enum EditTypes {
 
 export class Edit {
 	public start: Position;
+
 	public end: Position;
+
 	public text: string;
+
 	private action: number;
 
 	constructor(action: number, start: Position) {
 		this.action = action;
+
 		this.start = start;
+
 		this.text = "";
 	}
 
@@ -94,6 +101,7 @@ export class Edit {
 
 export interface FilePatch {
 	fileName: string;
+
 	edits: Edit[];
 }
 
@@ -106,12 +114,15 @@ export interface FilePatch {
  */
 function parseUniDiffs(diffOutput: jsDiff.IUniDiff[]): FilePatch[] {
 	const filePatches: FilePatch[] = [];
+
 	diffOutput.forEach((uniDiff: jsDiff.IUniDiff) => {
 		let edit: Edit;
 
 		const edits: Edit[] = [];
+
 		uniDiff.hunks.forEach((hunk: jsDiff.IHunk) => {
 			let startLine = hunk.oldStart;
+
 			hunk.lines.forEach((line) => {
 				switch (line.substr(0, 1)) {
 					case "-":
@@ -119,8 +130,11 @@ function parseUniDiffs(diffOutput: jsDiff.IUniDiff[]): FilePatch[] {
 							EditTypes.EDIT_DELETE,
 							new Position(startLine - 1, 0),
 						);
+
 						edit.end = new Position(startLine, 0);
+
 						edits.push(edit);
+
 						startLine++;
 
 						break;
@@ -130,7 +144,9 @@ function parseUniDiffs(diffOutput: jsDiff.IUniDiff[]): FilePatch[] {
 							EditTypes.EDIT_INSERT,
 							new Position(startLine - 1, 0),
 						);
+
 						edit.text += line.substr(1) + "\n";
+
 						edits.push(edit);
 
 						break;
@@ -144,6 +160,7 @@ function parseUniDiffs(diffOutput: jsDiff.IUniDiff[]): FilePatch[] {
 		});
 
 		const fileName = uniDiff.oldFileName;
+
 		filePatches.push({ fileName, edits });
 	});
 
@@ -166,8 +183,10 @@ export function getEdits(
 ): FilePatch {
 	if (process.platform === "win32") {
 		oldStr = oldStr.split("\r\n").join("\n");
+
 		newStr = newStr.split("\r\n").join("\n");
 	}
+
 	const unifiedDiffs: jsDiff.IUniDiff = jsDiff.structuredPatch(
 		fileName,
 		fileName,

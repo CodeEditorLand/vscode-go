@@ -40,6 +40,7 @@ export function getBinPathFromEnvVar(
 			}
 		}
 	}
+
 	return null;
 }
 
@@ -130,6 +131,7 @@ export function getBinPathWithPreferredGopath(
 
 			return defaultPathForGo;
 		}
+
 		return;
 	}
 
@@ -141,6 +143,7 @@ function correctBinname(toolName: string) {
 	if (process.platform === "win32") {
 		return toolName + ".exe";
 	}
+
 	return toolName;
 }
 
@@ -156,6 +159,7 @@ function executableFileExists(filePath: string): boolean {
 	} catch (e) {
 		exists = false;
 	}
+
 	return exists;
 }
 
@@ -178,6 +182,7 @@ export function resolveHomeDir(inputPath: string): string {
 	if (!inputPath || !inputPath.trim()) {
 		return inputPath;
 	}
+
 	return inputPath.startsWith("~")
 		? path.join(os.homedir(), inputPath.substr(1))
 		: inputPath;
@@ -187,6 +192,7 @@ export function stripBOM(s: string): string {
 	if (s && s[0] === "\uFEFF") {
 		s = s.substr(1);
 	}
+
 	return s;
 }
 
@@ -199,6 +205,7 @@ export function parseEnvFile(envFilePath: string): { [key: string]: string } {
 
 	try {
 		const buffer = stripBOM(fs.readFileSync(envFilePath, "utf8"));
+
 		buffer.split("\n").forEach((line) => {
 			const r = line.match(/^\s*([\w\.\-]+)\s*=\s*(.*)?\s*$/);
 
@@ -212,6 +219,7 @@ export function parseEnvFile(envFilePath: string): { [key: string]: string } {
 				) {
 					value = value.replace(/\\n/gm, "\n");
 				}
+
 				env[r[1]] = value.replace(/(^['"]|['"]$)/g, "");
 			}
 		});
@@ -255,9 +263,11 @@ export function getCurrentGoWorkspaceFromGOPATH(
 	if (!gopath) {
 		return;
 	}
+
 	const workspaces: string[] = gopath.split(path.delimiter);
 
 	let currentWorkspace = "";
+
 	currentFileDirPath = fixDriveCasingInWindows(currentFileDirPath);
 
 	// Find current workspace by checking if current file is
@@ -283,6 +293,7 @@ export function getCurrentGoWorkspaceFromGOPATH(
 			}
 		}
 	}
+
 	return currentWorkspace;
 }
 
@@ -301,10 +312,12 @@ export function getToolFromToolPath(toolPath: string): string | undefined {
 	if (!toolPath) {
 		return;
 	}
+
 	let tool = path.basename(toolPath);
 
 	if (process.platform === "win32" && tool.endsWith(".exe")) {
 		tool = tool.substr(0, tool.length - 4);
 	}
+
 	return tool;
 }

@@ -63,6 +63,7 @@ export class GoReferenceProvider implements vscode.ReferenceProvider {
 			const buildTags = getGoConfig(document.uri)["buildTags"];
 
 			const args = buildTags ? ["-tags", buildTags] : [];
+
 			args.push(
 				"-modified",
 				"referrers",
@@ -100,6 +101,7 @@ export class GoReferenceProvider implements vscode.ReferenceProvider {
 							if (!match) {
 								continue;
 							}
+
 							const [
 								_,
 								file,
@@ -129,10 +131,12 @@ export class GoReferenceProvider implements vscode.ReferenceProvider {
 								+lineEndStr - 1,
 								+colEndStr,
 							);
+
 							results.push(
 								new vscode.Location(referenceResource, range),
 							);
 						}
+
 						resolve(results);
 					} catch (e) {
 						reject(e);
@@ -143,6 +147,7 @@ export class GoReferenceProvider implements vscode.ReferenceProvider {
 			if (process.pid) {
 				process.stdin.end(getFileArchive(document));
 			}
+
 			token.onCancellationRequested(() => killTree(process.pid));
 		});
 	}

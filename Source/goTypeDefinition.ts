@@ -28,20 +28,27 @@ import vscode = require("vscode");
 
 interface GuruDescribeOutput {
 	desc: string;
+
 	pos: string;
+
 	detail: string;
+
 	value: GuruDescribeValueOutput;
 }
 
 interface GuruDescribeValueOutput {
 	type: string;
+
 	value: string;
+
 	objpos: string;
+
 	typespos: GuruDefinitionOutput[];
 }
 
 interface GuruDefinitionOutput {
 	objpos: string;
+
 	desc: string;
 }
 
@@ -56,6 +63,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 		if (!adjustedPos[0]) {
 			return Promise.resolve(null);
 		}
+
 		position = adjustedPos[2];
 
 		return new Promise<vscode.Definition>((resolve, reject) => {
@@ -78,6 +86,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 			const buildTags = getGoConfig(document.uri)["buildTags"];
 
 			const args = buildTags ? ["-tags", buildTags] : [];
+
 			args.push(
 				"-json",
 				"-modified",
@@ -132,6 +141,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 									) {
 										return null;
 									}
+
 									const definitionResource = vscode.Uri.file(
 										definitionInfo.file,
 									);
@@ -140,6 +150,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 										definitionInfo.line,
 										definitionInfo.column,
 									);
+
 									resolve(
 										new vscode.Location(
 											definitionResource,
@@ -155,18 +166,21 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 									} else if (err) {
 										return Promise.reject(err);
 									}
+
 									return Promise.resolve(null);
 								},
 							);
 						}
 
 						const results: vscode.Location[] = [];
+
 						guruOutput.value.typespos.forEach((ref) => {
 							const match = /^(.*):(\d+):(\d+)/.exec(ref.objpos);
 
 							if (!match) {
 								return;
 							}
+
 							const [_, file, line, col] = match;
 
 							const referenceResource = vscode.Uri.file(file);
@@ -175,6 +189,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 								parseInt(line, 10) - 1,
 								parseInt(col, 10) - 1,
 							);
+
 							results.push(
 								new vscode.Location(referenceResource, pos),
 							);
@@ -190,6 +205,7 @@ export class GoTypeDefinitionProvider implements vscode.TypeDefinitionProvider {
 			if (process.pid) {
 				process.stdin.end(getFileArchive(document));
 			}
+
 			token.onCancellationRequested(() => killTree(process.pid));
 		});
 	}

@@ -16,6 +16,7 @@ import vscode = require("vscode");
 
 export class GoRunTestCodeLensProvider extends GoBaseCodeLensProvider {
 	private readonly benchmarkRegex = /^Benchmark.+/;
+
 	private readonly debugConfig: any = {
 		name: "Launch",
 		type: "go",
@@ -33,6 +34,7 @@ export class GoRunTestCodeLensProvider extends GoBaseCodeLensProvider {
 		if (!this.enabled) {
 			return [];
 		}
+
 		const config = getGoConfig(document.uri);
 
 		const codeLensConfig = config.get<{ [key: string]: any }>(
@@ -56,9 +58,11 @@ export class GoRunTestCodeLensProvider extends GoBaseCodeLensProvider {
 			if (pkg && Array.isArray(pkg)) {
 				res = res.concat(pkg);
 			}
+
 			if (fns && Array.isArray(fns)) {
 				res = res.concat(fns);
 			}
+
 			return res;
 		});
 	}
@@ -79,6 +83,7 @@ export class GoRunTestCodeLensProvider extends GoBaseCodeLensProvider {
 		if (!pkg) {
 			return [];
 		}
+
 		const range = pkg.range;
 
 		const packageCodeLens = [
@@ -110,6 +115,7 @@ export class GoRunTestCodeLensProvider extends GoBaseCodeLensProvider {
 				}),
 			);
 		}
+
 		return packageCodeLens;
 	}
 

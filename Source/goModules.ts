@@ -32,7 +32,9 @@ async function runGoModEnv(folderPath: string): Promise<string> {
 
 		return;
 	}
+
 	const env = getToolsEnvVars();
+
 	GO111MODULE = env["GO111MODULE"];
 
 	return new Promise((resolve) => {
@@ -46,7 +48,9 @@ async function runGoModEnv(folderPath: string): Promise<string> {
 
 					return resolve();
 				}
+
 				const [goMod] = stdout.split("\n");
+
 				resolve(goMod);
 			},
 		);
@@ -73,6 +77,7 @@ export async function getModFolderPath(fileuri: vscode.Uri): Promise<string> {
 	if (fixDriveCasingInWindows(fileuri.fsPath).startsWith(moduleCache)) {
 		return moduleCache;
 	}
+
 	const goVersion = await getGoVersion();
 
 	if (goVersion.lt("1.11")) {
@@ -83,6 +88,7 @@ export async function getModFolderPath(fileuri: vscode.Uri): Promise<string> {
 
 	if (goModEnvResult) {
 		logModuleUsage();
+
 		goModEnvResult = path.dirname(goModEnvResult);
 
 		const goConfig = getGoConfig(fileuri);
@@ -95,10 +101,12 @@ export async function getModFolderPath(fileuri: vscode.Uri): Promise<string> {
 				false,
 				vscode.ConfigurationTarget.WorkspaceFolder,
 			);
+
 			vscode.window.showInformationMessage(
 				'The "inferGopath" setting is disabled for this workspace because Go modules are being used.',
 			);
 		}
+
 		if (goConfig["useLanguageServer"] === false) {
 			const promptMsg =
 				"For better performance using Go modules, you can try the experimental Go language server, gopls.";
@@ -108,11 +116,13 @@ export async function getModFolderPath(fileuri: vscode.Uri): Promise<string> {
 				promptMsg,
 				goConfig,
 			);
+
 			promptFormatTool = promptFormatTool && !choseToUpdateLS;
 		} else if (promptFormatTool) {
 			const languageServerExperimentalFeatures: any = goConfig.get(
 				"languageServerExperimentalFeatures",
 			);
+
 			promptFormatTool =
 				languageServerExperimentalFeatures["format"] === false;
 		}
@@ -120,6 +130,7 @@ export async function getModFolderPath(fileuri: vscode.Uri): Promise<string> {
 		if (promptFormatTool) {
 			const promptMsgForFormatTool =
 				'`goreturns` doesnt support auto-importing missing imports when using Go modules yet. Please update the "formatTool" setting to `goimports`.';
+
 			await promptToUpdateToolForModules(
 				"switchFormatToolToGoimports",
 				promptMsgForFormatTool,
@@ -127,6 +138,7 @@ export async function getModFolderPath(fileuri: vscode.Uri): Promise<string> {
 			);
 		}
 	}
+
 	packagePathToGoModPathMap[pkgPath] = goModEnvResult;
 
 	return goModEnvResult;
@@ -137,7 +149,9 @@ function logModuleUsage() {
 	if (moduleUsageLogged) {
 		return;
 	}
+
 	moduleUsageLogged = true;
+
 	sendTelemetryEventForModulesUsage();
 }
 
@@ -151,6 +165,7 @@ export async function promptToUpdateToolForModules(
 	if (promptedToolsForCurrentSession.has(tool)) {
 		return false;
 	}
+
 	const promptedToolsForModules = getFromGlobalState(
 		"promptedToolsForModules",
 		{},
@@ -159,6 +174,7 @@ export async function promptToUpdateToolForModules(
 	if (promptedToolsForModules[tool]) {
 		return false;
 	}
+
 	const goVersion = await getGoVersion();
 
 	const selected = await vscode.window.showInformationMessage(
@@ -177,6 +193,7 @@ export async function promptToUpdateToolForModules(
 			if (!goConfig) {
 				goConfig = getGoConfig();
 			}
+
 			if (tool === "switchFormatToolToGoimports") {
 				goConfig.update(
 					"formatTool",
@@ -193,6 +210,7 @@ export async function promptToUpdateToolForModules(
 								vscode.ConfigurationTarget.Global,
 							);
 						}
+
 						if (
 							goConfig.inspect("useLanguageServer")
 								.workspaceFolderValue === false
@@ -203,8 +221,10 @@ export async function promptToUpdateToolForModules(
 								vscode.ConfigurationTarget.WorkspaceFolder,
 							);
 						}
+
 						const reloadMsg =
 							"Reload VS Code window to enable the use of Go language server";
+
 						vscode.window
 							.showInformationMessage(reloadMsg, "Reload")
 							.then((selectedForReload) => {
@@ -217,7 +237,9 @@ export async function promptToUpdateToolForModules(
 					}
 				});
 			}
+
 			promptedToolsForModules[tool] = true;
+
 			updateGlobalState(
 				"promptedToolsForModules",
 				promptedToolsForModules,
@@ -227,6 +249,7 @@ export async function promptToUpdateToolForModules(
 
 		case `Don't show again`:
 			promptedToolsForModules[tool] = true;
+
 			updateGlobalState(
 				"promptedToolsForModules",
 				promptedToolsForModules,
@@ -240,6 +263,7 @@ export async function promptToUpdateToolForModules(
 
 			break;
 	}
+
 	return choseToUpdate;
 }
 
@@ -275,6 +299,7 @@ export async function getCurrentPackage(cwd: string): Promise<string> {
 
 		return;
 	}
+
 	return new Promise<string>((resolve) => {
 		const childProcess = cp.spawn(goRuntimePath, ["list"], {
 			cwd,
@@ -282,6 +307,7 @@ export async function getCurrentPackage(cwd: string): Promise<string> {
 		});
 
 		const chunks: any[] = [];
+
 		childProcess.stdout.on("data", (stdout) => {
 			chunks.push(stdout);
 		});
@@ -299,7 +325,9 @@ export async function getCurrentPackage(cwd: string): Promise<string> {
 
 				return;
 			}
+
 			folderToPackageMapping[cwd] = pkgs[0];
+
 			resolve(pkgs[0]);
 		});
 	});

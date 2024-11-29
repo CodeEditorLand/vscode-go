@@ -114,6 +114,7 @@ export function getTestEnvVars(config: vscode.WorkspaceConfiguration): any {
 					? resolvePath(fileEnv[key])
 					: fileEnv[key]),
 	);
+
 	Object.keys(testEnvConfig).forEach(
 		(key) =>
 			(envVars[key] =
@@ -131,6 +132,7 @@ export function getTestFlags(
 ): string[] {
 	let testFlags: string[] =
 		goConfig["testFlags"] || goConfig["buildFlags"] || [];
+
 	testFlags = testFlags.map((x) => resolvePath(x)); // Use copy of the flags, dont pass the actual object from config
 	return args && args.hasOwnProperty("flags") && Array.isArray(args["flags"])
 		? args["flags"]
@@ -186,6 +188,7 @@ export function extractInstanceTestName(symbolName: string): string {
 	if (!match || match.length !== 3) {
 		return null;
 	}
+
 	return match[2];
 }
 
@@ -203,6 +206,7 @@ export function getTestFunctionDebugArgs(
 	if (benchmarkRegex.test(testFunctionName)) {
 		return ["-test.bench", "^" + testFunctionName + "$", "-test.run", "a^"];
 	}
+
 	const instanceMethod = extractInstanceTestName(testFunctionName);
 
 	if (instanceMethod) {
@@ -298,6 +302,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 				args.push("-coverprofile=" + tmpCoverPath);
 			}
 		}
+
 		if (testTags && testconfig.flags.indexOf("-tags") === -1) {
 			args.push("-tags", testTags);
 		}
@@ -332,6 +337,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 				testconfig.dir.substr(currentGoWorkspace.length + 1),
 			);
 		}
+
 		let pkgMapPromise: Promise<Map<string, string> | null> =
 			Promise.resolve(null);
 
@@ -347,6 +353,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 
 						return null; // We dont need mapping, as we can derive the absolute paths from package path
 					}
+
 					return getNonVendorPackages(testconfig.dir).then(
 						(pkgMap) => {
 							targets = Array.from(pkgMap.keys());
@@ -383,12 +390,15 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 				if (args.indexOf("-run") > -1) {
 					removeRunFlag(testconfig.flags);
 				}
+
 				args.push(...testconfig.flags);
 
 				outTargets.push(...testconfig.flags);
+
 				outputChannel.appendLine(
 					["Running tool:", goRuntimePath, ...outTargets].join(" "),
 				);
+
 				outputChannel.appendLine("");
 
 				const tp = cp.spawn(goRuntimePath, args, {
@@ -424,6 +434,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 						const baseDir =
 							pkgMap.get(result[2]) ||
 							path.join(currentGoWorkspace, ...packageNameArr);
+
 						testResultLines.forEach((testResultLine) => {
 							if (
 								hasTestFailed &&
@@ -439,12 +450,14 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 								outputChannel.appendLine(testResultLine);
 							}
 						});
+
 						testResultLines.splice(0);
 					}
 				};
 
 				// go test emits test results on stdout, which contain file names relative to the package under test
 				outBuf.onLine((line) => processTestResultLine(line));
+
 				outBuf.onDone((last) => {
 					if (last) {
 						processTestResultLine(last);
@@ -464,6 +477,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 						expandFilePathInOutput(line, testconfig.dir),
 					),
 				);
+
 				errBuf.onDone(
 					(last) =>
 						last &&
@@ -475,6 +489,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 				tp.stdout.on("data", (chunk) =>
 					outBuf.append(chunk.toString()),
 				);
+
 				tp.stderr.on("data", (chunk) =>
 					errBuf.append(chunk.toString()),
 				);
@@ -483,6 +498,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 
 				tp.on("close", (code, signal) => {
 					outBuf.done();
+
 					errBuf.done();
 
 					const index = runningTestProcesses.indexOf(tp, 0);
@@ -502,7 +518,9 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 			},
 			(err) => {
 				outputChannel.appendLine(`Error: ${testType} failed.`);
+
 				outputChannel.appendLine(err);
+
 				resolve(false);
 			},
 		);
@@ -511,6 +529,7 @@ export async function goTest(testconfig: TestConfig): Promise<boolean> {
 	if (testconfig.applyCodeCoverage) {
 		await applyCodeCoverageToAllEditors(tmpCoverPath, testconfig.dir);
 	}
+
 	return testResult;
 }
 
@@ -531,6 +550,7 @@ export function cancelRunningTests(): Thenable<boolean> {
 		});
 		// All processes are now dead. Empty the array to prepare for the next run.
 		runningTestProcesses.splice(0, runningTestProcesses.length);
+
 		resolve(true);
 	});
 }
@@ -545,6 +565,7 @@ function expandFilePathInOutput(output: string, cwd: string): string {
 			lines[i] = lines[i].replace(matches[1], path.join(cwd, matches[1]));
 		}
 	}
+
 	return lines.join("\n");
 }
 
@@ -574,6 +595,7 @@ function targetArgs(testconfig: TestConfig): Array<string> {
 				testFunctions = testFunctions.filter(
 					(fn) => !testMethodRegex.test(fn),
 				);
+
 				testifyMethods = testifyMethods.map(extractInstanceTestName);
 			}
 
@@ -586,6 +608,7 @@ function targetArgs(testconfig: TestConfig): Array<string> {
 					util.format("^(%s)$", testFunctions.join("|")),
 				]);
 			}
+
 			if (testifyMethods.length > 0) {
 				params = params.concat([
 					"-testify.m",
@@ -593,12 +616,14 @@ function targetArgs(testconfig: TestConfig): Array<string> {
 				]);
 			}
 		}
+
 		return params;
 	}
 
 	if (testconfig.isBenchmark) {
 		params = ["-bench", "."];
 	}
+
 	return params;
 }
 

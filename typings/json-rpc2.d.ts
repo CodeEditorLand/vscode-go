@@ -9,6 +9,7 @@ declare module "json-rpc2" {
 
 	export class Client {
 		static $create(port: number, addr: string): Client;
+
 		connectSocket(
 			callback: (err: Error, conn: RPCConnection) => void,
 		): void;

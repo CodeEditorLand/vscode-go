@@ -22,6 +22,7 @@ export function browsePackages() {
 
 	if (editor) {
 		const currentUri = editor.document.uri;
+
 		workDir = path.dirname(currentUri.fsPath);
 
 		const selection = editor.selection;
@@ -33,12 +34,14 @@ export function browsePackages() {
 			// if selection is empty, then get the whole line the cursor is currently on.
 			selectedText = editor.document.lineAt(selection.active.line).text;
 		}
+
 		selectedText = getImportPath(selectedText) || selectedText.trim();
 	} else if (
 		vscode.workspace.workspaceFolders &&
 		vscode.workspace.workspaceFolders.length === 1
 	) {
 		const currentUri = vscode.workspace.workspaceFolders[0].uri;
+
 		workDir = currentUri.fsPath;
 	}
 
@@ -99,8 +102,11 @@ function showPackageFiles(
 				const testfiles = matches[3] ? matches[3].split(" ") : [];
 
 				const xtestfiles = matches[4] ? matches[4].split(" ") : [];
+
 				files = files.concat(testfiles);
+
 				files = files.concat(xtestfiles);
+
 				vscode.window
 					.showQuickPick(files, {
 						placeHolder: `Below are Go files from ${pkg}`,
@@ -141,6 +147,7 @@ function showPackageList(workDir: string) {
 				if (!pkgFromDropdown) {
 					return;
 				}
+
 				showPackageFiles(pkgFromDropdown, false, workDir);
 			});
 	});

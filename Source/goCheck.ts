@@ -33,7 +33,9 @@ export function removeTestStatus(e: vscode.TextDocumentChangeEvent) {
 	if (e.document.isUntitled) {
 		return;
 	}
+
 	statusBarItem.hide();
+
 	statusBarItem.text = "";
 }
 
@@ -46,6 +48,7 @@ export function notifyIfGeneratedFile(
 	if (e.document.isUntitled || e.document.languageId !== "go") {
 		return;
 	}
+
 	if (
 		ctx.globalState.get("ignoreGeneratedCodeWarning") !== true &&
 		e.document
@@ -67,6 +70,7 @@ export function notifyIfGeneratedFile(
 
 interface IToolCheckResults {
 	diagnosticCollection: vscode.DiagnosticCollection;
+
 	errors: ICheckResult[];
 }
 
@@ -75,6 +79,7 @@ export function check(
 	goConfig: vscode.WorkspaceConfiguration,
 ): Promise<IToolCheckResults[]> {
 	diagnosticsStatusBarItem.hide();
+
 	outputChannel.clear();
 
 	const runningToolsPromises = [];
@@ -136,11 +141,14 @@ export function check(
 
 	if (!!goConfig["testOnSave"]) {
 		statusBarItem.show();
+
 		statusBarItem.text = "Tests Running";
+
 		runTest().then((success) => {
 			if (statusBarItem.text === "") {
 				return;
 			}
+
 			if (success) {
 				statusBarItem.text = "Tests Passed";
 			} else {

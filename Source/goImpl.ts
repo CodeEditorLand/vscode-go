@@ -25,6 +25,7 @@ export function implCursor() {
 
 		return;
 	}
+
 	const cursor = editor.selection;
 
 	return vscode.window
@@ -36,6 +37,7 @@ export function implCursor() {
 			if (typeof implInput === "undefined") {
 				return;
 			}
+
 			const matches = implInput.match(inputRegex);
 
 			if (!matches) {

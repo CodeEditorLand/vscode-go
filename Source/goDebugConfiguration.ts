@@ -79,6 +79,7 @@ export class GoDebugConfigurationProvider
 		const goConfig = getGoConfig(folder && folder.uri);
 
 		const goToolsEnvVars = getToolsEnvVars();
+
 		Object.keys(goToolsEnvVars).forEach((key) => {
 			if (!debugConfiguration["env"].hasOwnProperty(key)) {
 				debugConfiguration["env"][key] = goToolsEnvVars[key];
@@ -94,21 +95,25 @@ export class GoDebugConfigurationProvider
 		} else if (dlvConfig.hasOwnProperty("useApiV1")) {
 			useApiV1 = dlvConfig["useApiV1"] === true;
 		}
+
 		if (useApiV1) {
 			debugConfiguration["apiVersion"] = 1;
 		}
+
 		if (
 			!debugConfiguration.hasOwnProperty("apiVersion") &&
 			dlvConfig.hasOwnProperty("apiVersion")
 		) {
 			debugConfiguration["apiVersion"] = dlvConfig["apiVersion"];
 		}
+
 		if (
 			!debugConfiguration.hasOwnProperty("dlvLoadConfig") &&
 			dlvConfig.hasOwnProperty("dlvLoadConfig")
 		) {
 			debugConfiguration["dlvLoadConfig"] = dlvConfig["dlvLoadConfig"];
 		}
+
 		if (
 			!debugConfiguration.hasOwnProperty("showGlobalVariables") &&
 			dlvConfig.hasOwnProperty("showGlobalVariables")
@@ -116,6 +121,7 @@ export class GoDebugConfigurationProvider
 			debugConfiguration["showGlobalVariables"] =
 				dlvConfig["showGlobalVariables"];
 		}
+
 		if (
 			debugConfiguration.request === "attach" &&
 			!debugConfiguration["cwd"]
@@ -159,6 +165,7 @@ export class GoDebugConfigurationProvider
 				`Request type of 'attach' with mode 'remote' does not work with 'program' attribute, please use 'cwd' attribute instead.`,
 			);
 		}
+
 		return debugConfiguration;
 	}
 
@@ -170,6 +177,7 @@ export class GoDebugConfigurationProvider
 		}
 
 		const neverAgain = { title: `Don't Show Again` };
+
 		vscode.window
 			.showWarningMessage(warningMessage, neverAgain)
 			.then((result) => {

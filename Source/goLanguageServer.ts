@@ -36,15 +36,21 @@ import WebRequest = require("web-request");
 
 interface LanguageServerConfig {
 	serverName: string;
+
 	path: string;
+
 	enabled: boolean;
+
 	flags: string[];
+
 	env: any;
+
 	features: {
 		diagnostics: boolean;
 
 		documentLink: boolean;
 	};
+
 	checkForUpdates: boolean;
 }
 
@@ -92,6 +98,7 @@ export async function registerLanguageFeatures(
 		if (!tool) {
 			return false;
 		}
+
 		const versionToUpdate = await shouldUpdateLanguageServer(
 			tool,
 			config.path,
@@ -118,6 +125,7 @@ async function startLanguageServer(
 		if (languageClient.diagnostics) {
 			languageClient.diagnostics.clear();
 		}
+
 		await languageClient.stop();
 
 		if (languageServerDisposable) {
@@ -135,10 +143,12 @@ async function startLanguageServer(
 		if (!config.enabled || !config.path) {
 			return false;
 		}
+
 		buildLanguageClient(config);
 	}
 
 	languageServerDisposable = languageClient.start();
+
 	ctx.subscriptions.push(languageServerDisposable);
 
 	return true;
@@ -151,6 +161,7 @@ function buildLanguageClient(config: LanguageServerConfig) {
 			config.serverName,
 		);
 	}
+
 	languageClient = new LanguageClient(
 		config.serverName,
 		{
@@ -181,6 +192,7 @@ function buildLanguageClient(config: LanguageServerConfig) {
 					if (!config.features.diagnostics) {
 						return null;
 					}
+
 					return next(uri, diagnostics);
 				},
 				provideDocumentLinks: (
@@ -191,6 +203,7 @@ function buildLanguageClient(config: LanguageServerConfig) {
 					if (!config.features.documentLink) {
 						return null;
 					}
+
 					return next(document, token);
 				},
 				provideCompletionItem: (
@@ -225,6 +238,7 @@ function buildLanguageClient(config: LanguageServerConfig) {
 					} else {
 						paramHintsEnabled = goParamHintsEnabled;
 					}
+
 					let cmd: Command;
 
 					if (paramHintsEnabled) {
@@ -252,8 +266,10 @@ function buildLanguageClient(config: LanguageServerConfig) {
 								},
 							);
 						}
+
 						return r;
 					}
+
 					const ret = next(document, position, context, token);
 
 					const isThenable = <T>(
@@ -270,11 +286,13 @@ function buildLanguageClient(config: LanguageServerConfig) {
 					) {
 						return ret.then(configureCommands);
 					}
+
 					return configureCommands(ret);
 				},
 			},
 		},
 	);
+
 	languageClient.onReady().then(() => {
 		const capabilities =
 			languageClient.initializeResult &&
@@ -386,6 +404,7 @@ export function getLanguageServerToolPath(): string {
 	if (path.isAbsolute(goplsBinaryPath)) {
 		return goplsBinaryPath;
 	}
+
 	const alternateTools = goConfig["alternateTools"];
 
 	if (alternateTools) {
@@ -422,6 +441,7 @@ function allFoldersHaveSameGopath(): boolean {
 	) {
 		return true;
 	}
+
 	const tempGopath = getCurrentGoPath(
 		vscode.workspace.workspaceFolders[0].uri,
 	);
@@ -485,6 +505,7 @@ async function shouldUpdateLanguageServer(
 		if (!latestTime) {
 			latestTime = defaultLatestVersionTime;
 		}
+
 		return usersTime.isBefore(latestTime) ? latestVersion : null;
 	}
 
@@ -506,12 +527,15 @@ function parsePseudoversionTimestamp(version: string): moment.Moment {
 	if (split.length < 2) {
 		return null;
 	}
+
 	if (!semver.valid(version)) {
 		return null;
 	}
+
 	if (!pseudoVersionRE.test(version)) {
 		return null;
 	}
+
 	const sv = semver.coerce(version);
 
 	if (!sv) {
@@ -525,7 +549,9 @@ function parsePseudoversionTimestamp(version: string): moment.Moment {
 	if (buildIndex >= 0) {
 		version = version.substring(0, buildIndex);
 	}
+
 	const lastDashIndex = version.lastIndexOf("-");
+
 	version = version.substring(0, lastDashIndex);
 
 	const firstDashIndex = version.lastIndexOf("-");
@@ -541,6 +567,7 @@ function parsePseudoversionTimestamp(version: string): moment.Moment {
 		// "vX.0.0"
 		timestamp = version.substring(firstDashIndex + 1);
 	}
+
 	return moment.utc(timestamp, "YYYYMMDDHHmmss");
 }
 
@@ -553,6 +580,7 @@ async function goplsVersionTimestamp(
 	if (!data) {
 		return null;
 	}
+
 	const time = moment(data["Time"]);
 
 	return time;
@@ -580,9 +608,11 @@ async function latestGopls(tool: Tool): Promise<semver.SemVer> {
 			versions.push(parsed);
 		}
 	}
+
 	if (versions.length === 0) {
 		return null;
 	}
+
 	versions.sort(semver.rcompare);
 
 	if (acceptGoplsPrerelease) {
@@ -603,6 +633,7 @@ async function goplsVersion(goplsPath: string): Promise<string> {
 
 	try {
 		const { stdout } = await execFile(goplsPath, ["version"], { env });
+
 		output = stdout;
 	} catch (e) {
 		// The "gopls version" command is not supported, or something else went wrong.
@@ -666,6 +697,7 @@ async function goProxyRequest(tool: Tool, endpoint: string): Promise<any> {
 		if (proxy === "direct") {
 			continue;
 		}
+
 		const url = `${proxy}/${tool.importPath}/@v/${endpoint}`;
 
 		let data: string;
@@ -677,8 +709,10 @@ async function goProxyRequest(tool: Tool, endpoint: string): Promise<any> {
 		} catch (e) {
 			return null;
 		}
+
 		return data;
 	}
+
 	return null;
 }
 
@@ -688,6 +722,7 @@ function goProxy(): string[] {
 	if (!output || !output.trim()) {
 		return [];
 	}
+
 	const split = output.trim().split(",");
 
 	return split;

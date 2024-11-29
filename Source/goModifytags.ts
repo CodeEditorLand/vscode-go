@@ -20,15 +20,20 @@ import vscode = require("vscode");
 // Interface for the output from gomodifytags
 interface GomodifytagsOutput {
 	start: number;
+
 	end: number;
+
 	lines: string[];
 }
 
 // Interface for settings configuration for adding and removing tags
 interface GoTagsConfig {
 	[key: string]: any;
+
 	tags: string;
+
 	options: string;
+
 	promptForTags: boolean;
 }
 
@@ -44,18 +49,25 @@ export function addTags(commandArgs: GoTagsConfig) {
 			if (!tags && !options) {
 				return;
 			}
+
 			if (tags) {
 				args.push("--add-tags");
+
 				args.push(tags);
 			}
+
 			if (options) {
 				args.push("--add-options");
+
 				args.push(options);
 			}
+
 			if (transformValue) {
 				args.push("--transform");
+
 				args.push(transformValue);
 			}
+
 			runGomodifytags(args);
 		},
 	);
@@ -74,16 +86,22 @@ export function removeTags(commandArgs: GoTagsConfig) {
 	).then(([tags, options]) => {
 		if (!tags && !options) {
 			args.push("--clear-tags");
+
 			args.push("--clear-options");
 		}
+
 		if (tags) {
 			args.push("--remove-tags");
+
 			args.push(tags);
 		}
+
 		if (options) {
 			args.push("--remove-options");
+
 			args.push(options);
 		}
+
 		runGomodifytags(args);
 	});
 }
@@ -96,11 +114,13 @@ function getCommonArgs(): string[] {
 
 		return;
 	}
+
 	if (!editor.document.fileName.endsWith(".go")) {
 		vscode.window.showInformationMessage("Current file is not a Go file.");
 
 		return;
 	}
+
 	const args = [
 		"-modified",
 		"-file",
@@ -115,11 +135,14 @@ function getCommonArgs(): string[] {
 	) {
 		// Add tags to the whole struct
 		const offset = byteOffsetAt(editor.document, editor.selection.start);
+
 		args.push("-offset");
+
 		args.push(offset.toString());
 	} else if (editor.selection.start.line <= editor.selection.end.line) {
 		// Add tags to selected lines
 		args.push("-line");
+
 		args.push(
 			`${editor.selection.start.line + 1},${editor.selection.end.line + 1}`,
 		);
@@ -190,6 +213,7 @@ function runGomodifytags(args: string[]) {
 
 				return;
 			}
+
 			if (err) {
 				vscode.window.showInformationMessage(
 					`Cannot modify tags: ${stderr}`,
@@ -197,7 +221,9 @@ function runGomodifytags(args: string[]) {
 
 				return;
 			}
+
 			const output = <GomodifytagsOutput>JSON.parse(stdout);
+
 			vscode.window.activeTextEditor.edit((editBuilder) => {
 				editBuilder.replace(
 					new vscode.Range(output.start - 1, 0, output.end, 0),

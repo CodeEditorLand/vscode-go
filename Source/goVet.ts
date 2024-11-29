@@ -32,6 +32,7 @@ export function vetCode(vetWorkspace?: boolean) {
 
 		return;
 	}
+
 	if (editor.document.languageId !== "go" && !vetWorkspace) {
 		vscode.window.showInformationMessage(
 			"File in the active editor is not a Go file, cannot find current package to vet",
@@ -46,6 +47,7 @@ export function vetCode(vetWorkspace?: boolean) {
 
 	outputChannel.clear(); // Ensures stale output from vet on save is cleared
 	diagnosticsStatusBarItem.show();
+
 	diagnosticsStatusBarItem.text = "Vetting...";
 
 	goVet(documentUri, goConfig, vetWorkspace)
@@ -55,10 +57,12 @@ export function vetCode(vetWorkspace?: boolean) {
 				warnings,
 				vetDiagnosticCollection,
 			);
+
 			diagnosticsStatusBarItem.hide();
 		})
 		.catch((err) => {
 			vscode.window.showInformationMessage("Error: " + err);
+
 			diagnosticsStatusBarItem.text = "Vetting Failed";
 		});
 }
@@ -83,8 +87,10 @@ export async function goVet(
 		if (running) {
 			tokenSource.cancel();
 		}
+
 		tokenSource.dispose();
 	}
+
 	tokenSource = new vscode.CancellationTokenSource();
 
 	const currentWorkspace = getWorkspaceFolderPath(fileUri);
@@ -111,11 +117,14 @@ export async function goVet(
 			if (!vetToolPath) {
 				return;
 			}
+
 			vetToolPath = resolvePath(vetToolPath);
+
 			args.push(`${flag.substr(0, flag.indexOf("=") + 1)}${vetToolPath}`);
 
 			return;
 		}
+
 		args.push(flag);
 	});
 
@@ -125,6 +134,7 @@ export async function goVet(
 
 	if (goConfig["buildTags"] && vetFlags.indexOf("-tags") === -1) {
 		tagsArg.push("-tags");
+
 		tagsArg.push(goConfig["buildTags"]);
 	}
 
@@ -151,6 +161,7 @@ export async function goVet(
 		if (closureEpoch === epoch) {
 			running = false;
 		}
+
 		return result;
 	});
 }

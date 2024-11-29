@@ -13,6 +13,7 @@ export function getFromGlobalState(key: string, defaultValue?: any) {
 	if (!globalState) {
 		return defaultValue;
 	}
+
 	return globalState.get(key, defaultValue);
 }
 
@@ -20,6 +21,7 @@ export function updateGlobalState(key: string, value: any) {
 	if (!globalState) {
 		return;
 	}
+
 	return globalState.update(key, value);
 }
 
@@ -31,6 +33,7 @@ export function getFromWorkspaceState(key: string, defaultValue?: any) {
 	if (!workspaceState) {
 		return defaultValue;
 	}
+
 	return workspaceState.get(key, defaultValue);
 }
 
@@ -38,6 +41,7 @@ export function updateWorkspaceState(key: string, value: any) {
 	if (!workspaceState) {
 		return;
 	}
+
 	return workspaceState.update(key, value);
 }
 

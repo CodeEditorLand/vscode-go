@@ -39,6 +39,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 		if (theCall == null) {
 			return Promise.resolve(null);
 		}
+
 		const callerPos = this.previousTokenPosition(
 			document,
 			theCall.openParen,
@@ -47,6 +48,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 		if (goConfig["docsTool"] === "guru") {
 			goConfig = Object.assign({}, goConfig, { docsTool: "godoc" });
 		}
+
 		try {
 			const res = await definitionLocation(
 				document,
@@ -60,10 +62,12 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 				// The definition was not found
 				return null;
 			}
+
 			if (res.line === callerPos.line) {
 				// This must be a function definition
 				return null;
 			}
+
 			let declarationText: string = (res.declarationlines || [])
 				.join(" ")
 				.trim();
@@ -71,6 +75,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 			if (!declarationText) {
 				return null;
 			}
+
 			const result = new SignatureHelp();
 
 			let sig: string;
@@ -83,7 +88,9 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 
 				const sigStart = nameEnd + 5; // ' func'
 				const funcName = declarationText.substring(0, nameEnd);
+
 				sig = declarationText.substring(sigStart);
+
 				si = new SignatureInformation(funcName + sig, res.doc);
 			} else if (res.toolUsed === "gogetdoc") {
 				// declaration is of the form "func Add(a int, b int) int"
@@ -93,14 +100,20 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 				if (funcNameStart > 0) {
 					declarationText = declarationText.substring(funcNameStart);
 				}
+
 				si = new SignatureInformation(declarationText, res.doc);
+
 				sig = declarationText.substring(res.name.length);
 			}
+
 			si.parameters = getParametersAndReturnType(sig).params.map(
 				(paramText) => new ParameterInformation(paramText),
 			);
+
 			result.signatures = [si];
+
 			result.activeSignature = 0;
+
 			result.activeParameter = Math.min(
 				theCall.commas.length,
 				si.parameters.length - 1,
@@ -122,8 +135,10 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 			if (word) {
 				return word.start;
 			}
+
 			position = position.translate(0, -1);
 		}
+
 		return null;
 	}
 
@@ -142,7 +157,9 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 
 		for (
 			let lineNr = position.line;
+
 			lineNr >= 0 && maxLookupLines >= 0;
+
 			lineNr--, maxLookupLines--
 		) {
 			const line = document.lineAt(lineNr);
@@ -172,6 +189,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 								commas,
 							};
 						}
+
 						break;
 
 					case ")":
@@ -188,10 +206,12 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 						) {
 							commas.push(commaPos);
 						}
+
 						break;
 				}
 			}
 		}
+
 		return null;
 	}
 }

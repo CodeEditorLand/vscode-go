@@ -38,6 +38,7 @@ export function buildCode(buildWorkspace?: boolean) {
 
 			return;
 		}
+
 		if (editor.document.languageId !== "go") {
 			vscode.window.showInformationMessage(
 				"File in the active editor is not a Go file, cannot find current package to build",
@@ -53,6 +54,7 @@ export function buildCode(buildWorkspace?: boolean) {
 
 	outputChannel.clear(); // Ensures stale output from build on save is cleared
 	diagnosticsStatusBarItem.show();
+
 	diagnosticsStatusBarItem.text = "Building...";
 
 	isModSupported(documentUri).then((isMod) => {
@@ -63,10 +65,12 @@ export function buildCode(buildWorkspace?: boolean) {
 					errors,
 					buildDiagnosticCollection,
 				);
+
 				diagnosticsStatusBarItem.hide();
 			})
 			.catch((err) => {
 				vscode.window.showInformationMessage("Error: " + err);
+
 				diagnosticsStatusBarItem.text = "Build Failed";
 			});
 	});
@@ -94,8 +98,10 @@ export async function goBuild(
 		if (running) {
 			tokenSource.cancel();
 		}
+
 		tokenSource.dispose();
 	}
+
 	tokenSource = new vscode.CancellationTokenSource();
 
 	const updateRunning = () => {
@@ -141,10 +147,12 @@ export async function goBuild(
 			buildFlags.splice(buildFlags.indexOf("-i"), 1);
 		}
 	}
+
 	buildArgs.push(...buildFlags);
 
 	if (goConfig["buildTags"] && buildFlags.indexOf("-tags") === -1) {
 		buildArgs.push("-tags");
+
 		buildArgs.push(goConfig["buildTags"]);
 	}
 

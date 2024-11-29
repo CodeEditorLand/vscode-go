@@ -240,16 +240,23 @@ declare module _ {
 	interface LoDashImplicitArrayWrapper<T>
 		extends LoDashImplicitWrapperBase<T[], LoDashImplicitArrayWrapper<T>> {
 		join(seperator?: string): string;
+
 		pop(): T;
+
 		push(...items: T[]): LoDashImplicitArrayWrapper<T>;
+
 		shift(): T;
+
 		sort(compareFn?: (a: T, b: T) => number): LoDashImplicitArrayWrapper<T>;
+
 		splice(start: number): LoDashImplicitArrayWrapper<T>;
+
 		splice(
 			start: number,
 			deleteCount: number,
 			...items: any[]
 		): LoDashImplicitArrayWrapper<T>;
+
 		unshift(...items: T[]): LoDashImplicitArrayWrapper<T>;
 	}
 
@@ -1100,9 +1107,12 @@ declare module _ {
 	}
 
 	interface MaybeNestedList<T> extends List<T | List<T>> {}
+
 	interface RecursiveArray<T> extends Array<T | RecursiveArray<T>> {}
+
 	interface ListOfRecursiveArraysOrValues<T>
 		extends List<T | RecursiveArray<T>> {}
+
 	interface RecursiveList<T> extends List<T | RecursiveList<T>> {}
 
 	//_.flatten
@@ -3378,10 +3388,15 @@ declare module _ {
 		 * @return Returns the new lodash wrapper instance.
 		 */
 		chain(value: number): LoDashExplicitWrapper<number>;
+
 		chain(value: string): LoDashExplicitWrapper<string>;
+
 		chain(value: boolean): LoDashExplicitWrapper<boolean>;
+
 		chain<T>(value: T[]): LoDashExplicitArrayWrapper<T>;
+
 		chain<T extends {}>(value: T): LoDashExplicitObjectWrapper<T>;
+
 		chain(value: any): LoDashExplicitWrapper<any>;
 	}
 
@@ -8537,15 +8552,19 @@ declare module _ {
 	interface Function0<R> {
 		(): R;
 	}
+
 	interface Function1<T1, R> {
 		(t1: T1): R;
 	}
+
 	interface Function2<T1, T2, R> {
 		(t1: T1, t2: T2): R;
 	}
+
 	interface Function3<T1, T2, T3, R> {
 		(t1: T1, t2: T2, t3: T3): R;
 	}
+
 	interface Function4<T1, T2, T3, T4, R> {
 		(t1: T1, t2: T2, t3: T3, t4: T4): R;
 	}
@@ -11850,11 +11869,14 @@ declare module _ {
 			callback: ObjectIterator<T, TResult>,
 			thisArg?: any,
 		): Dictionary<TResult>;
+
 		mapValues<T>(
 			obj: Dictionary<T>,
 			where: Dictionary<T>,
 		): Dictionary<boolean>;
+
 		mapValues<T, TMapped>(obj: T, pluck: string): TMapped;
+
 		mapValues<T>(
 			obj: T,
 			callback: ObjectIterator<any, any>,
@@ -12843,6 +12865,7 @@ declare module _ {
 
 	interface TemplateExecutor {
 		(data?: Object): string;
+
 		source: string;
 	}
 
@@ -13873,6 +13896,7 @@ declare module _ {
 	interface MemoVoidIterator<T, TResult> {
 		(prev: TResult, curr: T, indexOrKey?: any, list?: T[]): void;
 	}
+
 	interface MemoIterator<T, TResult> {
 		(prev: TResult, curr: T, indexOrKey?: any, list?: T[]): TResult;
 	}
@@ -13880,6 +13904,7 @@ declare module _ {
 	interface MemoVoidArrayIterator<T, TResult> {
 		(acc: TResult, curr: T, index?: number, arr?: T[]): void;
 	}
+
 	interface MemoVoidDictionaryIterator<T, TResult> {
 		(acc: TResult, curr: T, key?: string, dict?: Dictionary<T>): void;
 	}
@@ -13889,6 +13914,7 @@ declare module _ {
 	// Common interface between Arrays and jQuery objects
 	interface List<T> {
 		[index: number]: T;
+
 		length: number;
 	}
 

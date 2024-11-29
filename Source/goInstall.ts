@@ -28,6 +28,7 @@ export async function installCurrentPackage(): Promise<void> {
 
 		return;
 	}
+
 	if (editor.document.languageId !== "go") {
 		vscode.window.showInformationMessage(
 			"File in the active editor is not a Go file, cannot find current package to install",
@@ -77,10 +78,13 @@ export async function installCurrentPackage(): Promise<void> {
 		currentGoWorkspace && !isMod
 			? cwd.substr(currentGoWorkspace.length + 1)
 			: ".";
+
 	args.push(importPath);
 
 	outputChannel.clear();
+
 	outputChannel.show();
+
 	outputChannel.appendLine(
 		`Installing ${importPath === "." ? "current package" : importPath}`,
 	);

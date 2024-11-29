@@ -110,10 +110,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
 	updateGoPathGoRootFromConfig().then(async () => {
 		const updateToolsCmdText = "Update tools";
+
 		interface GoInfo {
 			goroot: string;
+
 			version: string;
 		}
+
 		const toolsGoInfo: { [id: string]: GoInfo } =
 			ctx.globalState.get("toolsGoInfo") || {};
 
@@ -122,6 +125,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 		if (!toolsGoInfo[toolsGopath]) {
 			toolsGoInfo[toolsGopath] = { goroot: null, version: null };
 		}
+
 		const prevGoroot = toolsGoInfo[toolsGopath].goroot;
 
 		const currentGoroot: string =
@@ -159,11 +163,14 @@ export function activate(ctx: vscode.ExtensionContext): void {
 								}
 							});
 					}
+
 					toolsGoInfo[toolsGopath].version = currVersionString;
 				}
 			}
 		}
+
 		toolsGoInfo[toolsGopath].goroot = currentGoroot;
+
 		ctx.globalState.update("toolsGoInfo", toolsGoInfo);
 
 		offerToInstallTools();
@@ -205,6 +212,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			);
 		}),
 	);
+
 	showHideStatus(vscode.window.activeTextEditor);
 
 	const testCodeLensProvider = new GoRunTestCodeLensProvider();
@@ -217,18 +225,21 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			new GoCodeActionProvider(),
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerCodeLensProvider(
 			GO_MODE,
 			testCodeLensProvider,
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerCodeLensProvider(
 			GO_MODE,
 			referencesCodeLensProvider,
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.debug.registerDebugConfigurationProvider(
 			"go",
@@ -238,16 +249,23 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
 	buildDiagnosticCollection =
 		vscode.languages.createDiagnosticCollection("go");
+
 	ctx.subscriptions.push(buildDiagnosticCollection);
+
 	lintDiagnosticCollection =
 		vscode.languages.createDiagnosticCollection("go-lint");
+
 	ctx.subscriptions.push(lintDiagnosticCollection);
+
 	vetDiagnosticCollection =
 		vscode.languages.createDiagnosticCollection("go-vet");
+
 	ctx.subscriptions.push(vetDiagnosticCollection);
 
 	addOnChangeTextDocumentListeners(ctx);
+
 	addOnChangeActiveTextEditorListeners(ctx);
+
 	addOnSaveTextDocumentListeners(ctx);
 
 	ctx.subscriptions.push(
@@ -268,6 +286,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 				const inferredFrom = vscode.window.activeTextEditor
 					? "current folder"
 					: "workspace root";
+
 				msg += ` It is inferred from ${inferredFrom}`;
 			}
 
@@ -280,7 +299,9 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.locate.tools", async () => {
 			outputChannel.show();
+
 			outputChannel.clear();
+
 			outputChannel.appendLine("Checking configured tools....");
 			// Tool's path search is done by getBinPathWithPreferredGopath
 			// which searches places in the following order
@@ -291,10 +312,15 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			// 5) GOROOT
 			// 6) PATH
 			outputChannel.appendLine("GOBIN: " + process.env["GOBIN"]);
+
 			outputChannel.appendLine("toolsGopath: " + getToolsGopath());
+
 			outputChannel.appendLine("gopath: " + getCurrentGoPath());
+
 			outputChannel.appendLine("GOROOT: " + process.env["GOROOT"]);
+
 			outputChannel.appendLine("PATH: " + process.env["PATH"]);
+
 			outputChannel.appendLine("");
 
 			const goVersion = await getGoVersion();
@@ -311,6 +337,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 					// (See getBinPathWithPreferredGopath which is called underneath)
 					msg = "installed";
 				}
+
 				outputChannel.appendLine(`   ${tool.name}: ${toolPath} ${msg}`);
 			});
 		}),
@@ -339,11 +366,13 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			implCursor();
 		}),
 	);
+
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.godoctor.extract", () => {
 			extractFunction();
 		}),
 	);
+
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.godoctor.var", () => {
 			extractVariable();
@@ -353,6 +382,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.test.cursor", (args) => {
 			const goConfig = getGoConfig();
+
 			testAtCursor(goConfig, "test", args);
 		}),
 	);
@@ -360,6 +390,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.debug.cursor", (args) => {
 			const goConfig = getGoConfig();
+
 			testAtCursor(goConfig, "debug", args);
 		}),
 	);
@@ -367,6 +398,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.benchmark.cursor", (args) => {
 			const goConfig = getGoConfig();
+
 			testAtCursor(goConfig, "benchmark", args);
 		}),
 	);
@@ -376,6 +408,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			const goConfig = getGoConfig();
 
 			const isBenchmark = false;
+
 			testCurrentPackage(goConfig, isBenchmark, args);
 		}),
 	);
@@ -385,6 +418,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			const goConfig = getGoConfig();
 
 			const isBenchmark = true;
+
 			testCurrentPackage(goConfig, isBenchmark, args);
 		}),
 	);
@@ -394,6 +428,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			const goConfig = getGoConfig();
 
 			const isBenchmark = false;
+
 			testCurrentFile(goConfig, isBenchmark, args);
 		}),
 	);
@@ -403,6 +438,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 			const goConfig = getGoConfig();
 
 			const isBenchmark = true;
+
 			testCurrentFile(goConfig, isBenchmark, args);
 		}),
 	);
@@ -410,6 +446,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.test.workspace", (args) => {
 			const goConfig = getGoConfig();
+
 			testWorkspace(goConfig, args);
 		}),
 	);
@@ -454,10 +491,12 @@ export function activate(ctx: vscode.ExtensionContext): void {
 		vscode.commands.registerCommand("go.tools.install", async (args) => {
 			if (Array.isArray(args) && args.length) {
 				const goVersion = await getGoVersion();
+
 				installTools(args, goVersion);
 
 				return;
 			}
+
 			installAllTools();
 		}),
 	);
@@ -474,8 +513,11 @@ export function activate(ctx: vscode.ExtensionContext): void {
 				if (!e.affectsConfiguration("go")) {
 					return;
 				}
+
 				const updatedGoConfig = getGoConfig();
+
 				sendTelemetryEventForConfig(updatedGoConfig);
+
 				updateGoPathGoRootFromConfig();
 
 				// If there was a change in "toolsGopath" setting, then clear cache for go tools
@@ -487,6 +529,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 					testCodeLensProvider.setEnabled(
 						updatedGoConfig["enableCodeLens"]["runtest"],
 					);
+
 					referencesCodeLensProvider.setEnabled(
 						updatedGoConfig["enableCodeLens"]["references"],
 					);
@@ -495,23 +538,28 @@ export function activate(ctx: vscode.ExtensionContext): void {
 				if (e.affectsConfiguration("go.formatTool")) {
 					checkToolExists(updatedGoConfig["formatTool"]);
 				}
+
 				if (e.affectsConfiguration("go.lintTool")) {
 					checkToolExists(updatedGoConfig["lintTool"]);
 				}
+
 				if (e.affectsConfiguration("go.docsTool")) {
 					checkToolExists(updatedGoConfig["docsTool"]);
 				}
+
 				if (e.affectsConfiguration("go.coverageDecorator")) {
 					updateCodeCoverageDecorators(
 						updatedGoConfig["coverageDecorator"],
 					);
 				}
+
 				if (e.affectsConfiguration("go.toolsEnvVars")) {
 					const env = getToolsEnvVars();
 
 					if (GO111MODULE !== env["GO111MODULE"]) {
 						const reloadMsg =
 							"Reload VS Code window so that the Go tools can respect the change to GO111MODULE";
+
 						vscode.window
 							.showInformationMessage(reloadMsg, "Reload")
 							.then((selected) => {
@@ -568,22 +616,27 @@ export function activate(ctx: vscode.ExtensionContext): void {
 	ctx.subscriptions.push(
 		vscode.commands.registerCommand("go.show.commands", () => {
 			const extCommands = getExtensionCommands();
+
 			extCommands.push({
 				command: "editor.action.goToDeclaration",
 				title: "Go to Definition",
 			});
+
 			extCommands.push({
 				command: "editor.action.goToImplementation",
 				title: "Go to Implementation",
 			});
+
 			extCommands.push({
 				command: "workbench.action.gotoSymbol",
 				title: "Go to Symbol in File...",
 			});
+
 			extCommands.push({
 				command: "workbench.action.showAllSymbols",
 				title: "Go to Symbol in Workspace...",
 			});
+
 			vscode.window
 				.showQuickPick(extCommands.map((x) => x.title))
 				.then((cmd) => {
@@ -663,12 +716,14 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
 				return;
 			}
+
 			const lastCoverProfilePathKey = "lastCoverProfilePathKey";
 
 			const lastCoverProfilePath = getFromWorkspaceState(
 				lastCoverProfilePathKey,
 				"",
 			);
+
 			vscode.window
 				.showInputBox({
 					prompt: "Enter the path to the coverage profile for current package",
@@ -678,6 +733,7 @@ export function activate(ctx: vscode.ExtensionContext): void {
 					if (!coverProfilePath) {
 						return;
 					}
+
 					if (!fileExists(coverProfilePath)) {
 						vscode.window.showErrorMessage(
 							`Cannot find the file ${coverProfilePath}`,
@@ -685,12 +741,14 @@ export function activate(ctx: vscode.ExtensionContext): void {
 
 						return;
 					}
+
 					if (coverProfilePath !== lastCoverProfilePath) {
 						updateWorkspaceState(
 							lastCoverProfilePathKey,
 							coverProfilePath,
 						);
 					}
+
 					applyCodeCoverageToAllEditors(
 						coverProfilePath,
 						path.dirname(
@@ -726,8 +784,11 @@ function runBuilds(
 	}
 
 	buildDiagnosticCollection.clear();
+
 	lintDiagnosticCollection.clear();
+
 	vetDiagnosticCollection.clear();
+
 	check(document.uri, goConfig)
 		.then((results) => {
 			results.forEach((result) => {
@@ -749,11 +810,13 @@ function addOnSaveTextDocumentListeners(ctx: vscode.ExtensionContext) {
 		null,
 		ctx.subscriptions,
 	);
+
 	vscode.workspace.onDidSaveTextDocument(
 		(document) => {
 			if (document.languageId !== "go") {
 				return;
 			}
+
 			if (vscode.debug.activeDebugSession) {
 				const neverAgain = { title: `Don't Show Again` };
 
@@ -780,6 +843,7 @@ function addOnSaveTextDocumentListeners(ctx: vscode.ExtensionContext) {
 						});
 				}
 			}
+
 			if (
 				vscode.window.visibleTextEditors.some(
 					(e) => e.document.fileName === document.fileName,
@@ -796,7 +860,9 @@ function addOnSaveTextDocumentListeners(ctx: vscode.ExtensionContext) {
 // registerUsualProviders registers the language feature providers if the language server is not enabled.
 function registerUsualProviders(ctx: vscode.ExtensionContext) {
 	const provider = new GoCompletionItemProvider(ctx.globalState);
+
 	ctx.subscriptions.push(provider);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerCompletionItemProvider(
 			GO_MODE,
@@ -805,32 +871,38 @@ function registerUsualProviders(ctx: vscode.ExtensionContext) {
 			'"',
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerHoverProvider(GO_MODE, new GoHoverProvider()),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerDefinitionProvider(
 			GO_MODE,
 			new GoDefinitionProvider(),
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerReferenceProvider(
 			GO_MODE,
 			new GoReferenceProvider(),
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerDocumentSymbolProvider(
 			GO_MODE,
 			new GoDocumentSymbolProvider(),
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerWorkspaceSymbolProvider(
 			new GoWorkspaceSymbolProvider(),
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerSignatureHelpProvider(
 			GO_MODE,
@@ -839,30 +911,35 @@ function registerUsualProviders(ctx: vscode.ExtensionContext) {
 			",",
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerImplementationProvider(
 			GO_MODE,
 			new GoImplementationProvider(),
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerDocumentFormattingEditProvider(
 			GO_MODE,
 			new GoDocumentFormattingEditProvider(),
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerTypeDefinitionProvider(
 			GO_MODE,
 			new GoTypeDefinitionProvider(),
 		),
 	);
+
 	ctx.subscriptions.push(
 		vscode.languages.registerRenameProvider(
 			GO_MODE,
 			new GoRenameProvider(),
 		),
 	);
+
 	vscode.workspace.onDidChangeTextDocument(
 		parseLiveFile,
 		null,
@@ -876,11 +953,13 @@ function addOnChangeTextDocumentListeners(ctx: vscode.ExtensionContext) {
 		null,
 		ctx.subscriptions,
 	);
+
 	vscode.workspace.onDidChangeTextDocument(
 		removeTestStatus,
 		null,
 		ctx.subscriptions,
 	);
+
 	vscode.workspace.onDidChangeTextDocument(
 		notifyIfGeneratedFile,
 		ctx,
@@ -894,6 +973,7 @@ function addOnChangeActiveTextEditorListeners(ctx: vscode.ExtensionContext) {
 		null,
 		ctx.subscriptions,
 	);
+
 	vscode.window.onDidChangeActiveTextEditor(
 		applyCodeCoverage,
 		null,
