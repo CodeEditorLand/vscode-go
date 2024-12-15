@@ -1521,7 +1521,6 @@ class GoDebugSession extends LoggingDebugSession {
 							// enclose in parentheses, one pair per scope
 							for (
 								let scope = 0;
-
 								scope < svIndices.length;
 								++scope
 							) {
@@ -1620,9 +1619,7 @@ class GoDebugSession extends LoggingDebugSession {
 
 										for (
 											let i = 0;
-
 											i < globals.length;
-
 											i++
 										) {
 											globals[i].name = globals[

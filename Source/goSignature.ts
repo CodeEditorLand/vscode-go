@@ -157,9 +157,7 @@ export class GoSignatureHelpProvider implements SignatureHelpProvider {
 
 		for (
 			let lineNr = position.line;
-
 			lineNr >= 0 && maxLookupLines >= 0;
-
 			lineNr--, maxLookupLines--
 		) {
 			const line = document.lineAt(lineNr);
