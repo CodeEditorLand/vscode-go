@@ -1513,11 +1513,11 @@
 		"@types/deep-equal": "1.0.4",
 		"@types/fs-extra": "11.0.4",
 		"@types/glob": "8.1.0",
-		"@types/node": "22.10.5",
+		"@types/node": "22.10.6",
 		"@types/semver": "7.5.8",
 		"@types/sinon": "17.0.3",
 		"fs-extra": "11.2.0",
-		"glob": "11.0.0",
+		"glob": "11.0.1",
 		"sinon": "19.0.2"
 	},
 	"extensionDependencies": [],
